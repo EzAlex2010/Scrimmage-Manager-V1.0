@@ -248,11 +248,15 @@ public class LeaderboardManager : MonoBehaviour
         }
         Debug.Log($"Assigned {teamNumber} to {alliance}");
     }
-    
+
     public void CloseMatchSettingsPanel()
     {
         MatchSettingsPanel.SetActive(false);
         TeamSelectPanel.SetActive(true);
+        Red1 = null;
+        Red2 = null;
+        Blue1 = null;
+        Blue2 = null;
     }
 
 }

@@ -82,7 +82,7 @@ public class TMBridgeFieldsetController : MonoBehaviour
     void Start()
     {
         //StartTMBridge();
-        UnityEngine.Debug.Log("Bridge Is Disabled!");
+        UnityEngine.Debug.LogWarning("Bridge Is Disabled!");
         if (matchState != "paused") ResetTimer();
         StartCoroutine(PollMatchTime());
     }
