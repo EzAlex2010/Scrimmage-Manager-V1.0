@@ -12,6 +12,8 @@ public class LeaderboardManager : MonoBehaviour
     public int maxSelectedTeams = 4;
     private string filePath;
     public int numOfTeamsSelected = 0;
+    public bool recordScores = false;
+    public string passcode = "6741 Robotics";
 
     public string Red1;
     public string Red2;
@@ -33,6 +35,7 @@ public class LeaderboardManager : MonoBehaviour
     public Transform selectedTeamsPanelContent; // Content inside the new panel
     public GameObject teamRowPrefab; // New prefab for rows with Red/Blue buttons
     public Button nextButton; // Button to go to next step in match creation
+    public TMP_InputField recordscorespass;
 
 
     void Start()
@@ -190,6 +193,10 @@ public class LeaderboardManager : MonoBehaviour
         TeamSelectPanel.SetActive(false);
         numOfTeamsSelected = 0;
         nextButton.interactable = false; // Disable next button until teams are selected
+        Red1 = null;
+        Red2 = null;
+        Blue1 = null;
+        Blue2 = null;
         // Clear the panel content
         foreach (Transform child in selectedTeamsPanelContent) Destroy(child.gameObject);
         // Populate panel with selected teams
@@ -205,7 +212,7 @@ public class LeaderboardManager : MonoBehaviour
         }
         MatchSettingsPanel.SetActive(true);
     }
-    
+
     public void UpdateNextButtonState()
     {
         nextButton.interactable = numOfTeamsSelected == 0; // Enable next button only if all teams are assigned to alliances
@@ -282,4 +289,20 @@ public class LeaderboardManager : MonoBehaviour
         Blue2 = null;
     }
 
+    public void CreateMatchAndSet()
+    {
+        if (recordscorespass.text == passcode)
+        {
+            recordScores = true;
+            Debug.Log("Passcode correct! recordScores = true");
+        }
+        else
+        {
+            recordScores = false;
+            Debug.Log("Passcode incorrect. recordScores = false");
+            if (recordscorespass.text != "") return;
+        }
+        Debug.Log($"Creating match with Red1: {Red1}, Red2: {Red2}, Blue1: {Blue1}, Blue2: {Blue2}");
+        MatchSettingsPanel.SetActive(false);
+    }
 }
