@@ -24,18 +24,27 @@ public class LeaderboardManager : MonoBehaviour
 
     [Header("UI References")]
     public TextMeshProUGUI leaderboardText;
+
     [Header("Team Selection Panel")]
     public Transform teamListContent; // The Scroll View Content object
     public Transform selectedTeamContent; // The other scroll list
     public GameObject teamButtonPrefab; // The button prefab
     public GameObject CreateMatchButton; // Button to create a match
     public GameObject TeamSelectPanel; // Panel to show team selection UI
+
     [Header("Match Settings Panel")]
     public GameObject MatchSettingsPanel; // New panel to show selected teams
     public Transform selectedTeamsPanelContent; // Content inside the new panel
     public GameObject teamRowPrefab; // New prefab for rows with Red/Blue buttons
     public Button nextButton; // Button to go to next step in match creation
     public TMP_InputField recordscorespass;
+
+    [Header("Run Match Panel")]
+    public GameObject RunMatchPanel; // Panel to run the match
+    public TMP_Text TeamRed1;
+    public TMP_Text TeamRed2;
+    public TMP_Text TeamBlue1;
+    public TMP_Text TeamBlue2;
 
 
     void Start()
@@ -304,5 +313,10 @@ public class LeaderboardManager : MonoBehaviour
         }
         Debug.Log($"Creating match with Red1: {Red1}, Red2: {Red2}, Blue1: {Blue1}, Blue2: {Blue2}");
         MatchSettingsPanel.SetActive(false);
+        RunMatchPanel.SetActive(true);
+        TeamRed1.text = Red1 ?? "N/A";
+        TeamRed2.text = Red2 ?? "N/A";
+        TeamBlue1.text = Blue1 ?? "N/A";
+        TeamBlue2.text = Blue2 ?? "N/A";
     }
 }
