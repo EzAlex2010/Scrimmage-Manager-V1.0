@@ -200,34 +200,47 @@ public class LeaderboardManager : MonoBehaviour
 
     private void AssignToAlliance(string teamNumber, string alliance, TeamRowUI rowUI)
     {
-        // Remove the team from any previous slot
-        if (Red1 == teamNumber) Red1 = null;
-        if (Red2 == teamNumber) Red2 = null;
-        if (Blue1 == teamNumber) Blue1 = null;
-        if (Blue2 == teamNumber) Blue2 = null;
         // Assign to the first free slot in the selected alliance
         if (alliance == "Red")
         {
-            if (string.IsNullOrEmpty(Red1))
-                Red1 = teamNumber;
-            else if (string.IsNullOrEmpty(Red2))
-                Red2 = teamNumber;
+            if (Blue1 == teamNumber) Blue1 = null;
+            if (Blue2 == teamNumber) Blue2 = null;
+            if (Red1 == teamNumber || Red2 == teamNumber)
+            {
+                Debug.Log("Team already assigned to Red alliance!");
+                rowUI.teamNameText.color = Color.white; // change color
+                if (Red1 == teamNumber) Red1 = null;
+                if (Red2 == teamNumber) Red2 = null;
+                return;
+            }
+            else if (string.IsNullOrEmpty(Red1)) Red1 = teamNumber;
+            else if (string.IsNullOrEmpty(Red2)) Red2 = teamNumber;
             else
             {
                 Debug.Log("Red alliance is full!");
+                rowUI.teamNameText.color = Color.white; // change color
                 return;
             }
             rowUI.teamNameText.color = Color.red; // change color
         }
         else if (alliance == "Blue")
         {
-            if (string.IsNullOrEmpty(Blue1))
-                Blue1 = teamNumber;
-            else if (string.IsNullOrEmpty(Blue2))
-                Blue2 = teamNumber;
+            if (Red1 == teamNumber) Red1 = null;
+            if (Red2 == teamNumber) Red2 = null;
+            if (Blue1 == teamNumber || Blue2 == teamNumber)
+            {
+                Debug.Log("Team already assigned to Blue alliance!");
+                rowUI.teamNameText.color = Color.white; // change color
+                if (Blue1 == teamNumber) Blue1 = null;
+                if (Blue2 == teamNumber) Blue2 = null;
+                return;
+            }
+            else if (string.IsNullOrEmpty(Blue1)) Blue1 = teamNumber;
+            else if (string.IsNullOrEmpty(Blue2)) Blue2 = teamNumber;
             else
             {
                 Debug.Log("Blue alliance is full!");
+                rowUI.teamNameText.color = Color.white; // change color
                 return;
             }
             rowUI.teamNameText.color = Color.blue; // change color
@@ -242,9 +255,4 @@ public class LeaderboardManager : MonoBehaviour
         TeamSelectPanel.SetActive(true);
     }
 
-}
-
-[System.Serializable]
-public class TeamDataListWrapper {
-    public List<TeamData> teamScores;
 }
