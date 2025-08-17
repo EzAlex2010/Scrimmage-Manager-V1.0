@@ -11,11 +11,14 @@ public class LeaderboardManager : MonoBehaviour
     public List<TeamData> teamScores = new List<TeamData>();
     public int maxSelectedTeams = 4;
     private string filePath;
+    public int numOfTeamsSelected = 0;
 
     public string Red1;
     public string Red2;
     public string Blue1;
     public string Blue2;
+
+    public bool runAuton = true; // Flag to control auton mode. True by default
 
     [Header("UI References")]
     public TextMeshProUGUI leaderboardText;
@@ -29,6 +32,7 @@ public class LeaderboardManager : MonoBehaviour
     public GameObject MatchSettingsPanel; // New panel to show selected teams
     public Transform selectedTeamsPanelContent; // Content inside the new panel
     public GameObject teamRowPrefab; // New prefab for rows with Red/Blue buttons
+    public Button nextButton; // Button to go to next step in match creation
 
 
     void Start()
@@ -66,6 +70,11 @@ public class LeaderboardManager : MonoBehaviour
         AddWinPoints("6741N", 0);
         AddWinPoints("6741M", 0);
         UpdateLeaderboardDisplay();
+    }
+
+    public void SetRunAuton(bool value)
+    {
+        runAuton = value;
     }
 
     public void UpdateLeaderboardDisplay()
@@ -179,11 +188,10 @@ public class LeaderboardManager : MonoBehaviour
     {
         // Close the team selection panel
         TeamSelectPanel.SetActive(false);
-
+        numOfTeamsSelected = 0;
+        nextButton.interactable = false; // Disable next button until teams are selected
         // Clear the panel content
-        foreach (Transform child in selectedTeamsPanelContent)
-            Destroy(child.gameObject);
-
+        foreach (Transform child in selectedTeamsPanelContent) Destroy(child.gameObject);
         // Populate panel with selected teams
         foreach (Transform teamButton in selectedTeamContent)
         {
@@ -193,9 +201,14 @@ public class LeaderboardManager : MonoBehaviour
             GameObject rowObj = Instantiate(teamRowPrefab, selectedTeamsPanelContent);
             TeamRowUI rowUI = rowObj.GetComponent<TeamRowUI>();
             rowUI.Setup(team, (t, alliance) => AssignToAlliance(t.teamName, alliance, rowUI));
-
+            numOfTeamsSelected++;
         }
         MatchSettingsPanel.SetActive(true);
+    }
+    
+    public void UpdateNextButtonState()
+    {
+        nextButton.interactable = numOfTeamsSelected == 0; // Enable next button only if all teams are assigned to alliances
     }
 
     private void AssignToAlliance(string teamNumber, string alliance, TeamRowUI rowUI)
@@ -211,6 +224,8 @@ public class LeaderboardManager : MonoBehaviour
                 rowUI.teamNameText.color = Color.white; // change color
                 if (Red1 == teamNumber) Red1 = null;
                 if (Red2 == teamNumber) Red2 = null;
+                numOfTeamsSelected++;
+                UpdateNextButtonState();
                 return;
             }
             else if (string.IsNullOrEmpty(Red1)) Red1 = teamNumber;
@@ -219,8 +234,11 @@ public class LeaderboardManager : MonoBehaviour
             {
                 Debug.Log("Red alliance is full!");
                 rowUI.teamNameText.color = Color.white; // change color
+                numOfTeamsSelected++;
+                UpdateNextButtonState();
                 return;
             }
+            numOfTeamsSelected--;
             rowUI.teamNameText.color = Color.red; // change color
         }
         else if (alliance == "Blue")
@@ -233,6 +251,8 @@ public class LeaderboardManager : MonoBehaviour
                 rowUI.teamNameText.color = Color.white; // change color
                 if (Blue1 == teamNumber) Blue1 = null;
                 if (Blue2 == teamNumber) Blue2 = null;
+                numOfTeamsSelected++;
+                UpdateNextButtonState();
                 return;
             }
             else if (string.IsNullOrEmpty(Blue1)) Blue1 = teamNumber;
@@ -241,11 +261,14 @@ public class LeaderboardManager : MonoBehaviour
             {
                 Debug.Log("Blue alliance is full!");
                 rowUI.teamNameText.color = Color.white; // change color
+                numOfTeamsSelected++;
+                UpdateNextButtonState();
                 return;
             }
+            numOfTeamsSelected--;
             rowUI.teamNameText.color = Color.blue; // change color
-                
         }
+        UpdateNextButtonState();
         Debug.Log($"Assigned {teamNumber} to {alliance}");
     }
 

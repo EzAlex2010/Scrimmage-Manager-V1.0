@@ -96,20 +96,15 @@ public class TMBridgeFieldsetController : MonoBehaviour
                 yield return null; // Wait until next frame, skip polling
                 continue;
             }
-
             string url = $"{tmBridgeBaseUrl}/api/fieldset/{fieldsetName}";
             UnityWebRequest request = UnityWebRequest.Get(url);
             request.downloadHandler = new DownloadHandlerBuffer();
-
             yield return request.SendWebRequest();
-
             if (request.result == UnityWebRequest.Result.Success)
             {
                 string json = request.downloadHandler.text;
                 FieldsetStatus status = JsonUtility.FromJson<FieldsetStatus>(json);
-
                 UnityEngine.Debug.Log($"[TM] Time: {status.match_timer_content} | State: {status.match_state}");
-
                 if (matchTimerText != null)
                 {
                     matchTimerText.text = status.match_timer_content;
@@ -117,7 +112,6 @@ public class TMBridgeFieldsetController : MonoBehaviour
                     matchState = status.match_state;
                     matchTime = status.match_time;
                 }
-
                 if (status.match_time == 0 && !hasTriggeredReset)
                 {
                     hasTriggeredReset = true;
@@ -129,7 +123,6 @@ public class TMBridgeFieldsetController : MonoBehaviour
                 UnityEngine.Debug.LogError($"[TM] Polling failed: {request.error}");
                 canPoll = false; // Stop further polling until reset
             }
-
             yield return new WaitForSeconds(pollIntervalSeconds);
         }
     }
