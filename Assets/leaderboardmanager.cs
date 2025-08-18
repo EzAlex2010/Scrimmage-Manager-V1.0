@@ -47,6 +47,8 @@ public class LeaderboardManager : MonoBehaviour
     public TMP_Text TeamRed2;
     public TMP_Text TeamBlue1;
     public TMP_Text TeamBlue2;
+    public GameObject ControlPanel; // Panel to control the match
+    public GameObject ScoringPanel; // Panel to score the match
 
 
     void Start()
@@ -316,6 +318,8 @@ public class LeaderboardManager : MonoBehaviour
         Debug.Log($"Creating match with Red1: {Red1}, Red2: {Red2}, Blue1: {Blue1}, Blue2: {Blue2}");
         MatchSettingsPanel.SetActive(false);
         RunMatchPanel.SetActive(true);
+        ControlPanel.SetActive(true);
+        ScoringPanel.SetActive(false);
         TeamRed1.text = Red1 ?? "N/A";
         TeamRed2.text = Red2 ?? "N/A";
         TeamBlue1.text = Blue1 ?? "N/A";
@@ -331,5 +335,7 @@ public class LeaderboardManager : MonoBehaviour
         tmBridgeController.displayMatchState = "Match Ended";
         tmBridgeController.matchStateText.text = tmBridgeController.displayMatchState;
         //Open Scoring Panel
+        ControlPanel.SetActive(false);
+        ScoringPanel.SetActive(true);
     }
 }

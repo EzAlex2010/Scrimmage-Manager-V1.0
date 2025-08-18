@@ -26,6 +26,7 @@ public class TMBridgeFieldsetController : MonoBehaviour
     public Button EndEarlyButton;
     public Button AbortButton;
     public LeaderboardManager leaderboardManager;
+    public bool autonStarted;
 
 
     void StartTMBridge()
@@ -205,9 +206,15 @@ public class TMBridgeFieldsetController : MonoBehaviour
                 }
                 if (status.match_time == 0 && matchState == "DRIVER CONTROL")
                 {
-                    // Tell the leaderboard manager to open the post-match screen
                     leaderboardManager.EndMatch();
                     UnityEngine.Debug.Log("[TM] Match ended.");
+                }
+                if (status.match_time == 15 && displayMatchState == "AUTONOMOUS") autonStarted = true;
+                if (status.match_time == 0 && displayMatchState == "AUTONOMOUS" && autonStarted)
+                {
+                    StartButton.interactable = true;
+                    EndEarlyButton.interactable = false;
+                    UnityEngine.Debug.Log("[TM] Auton ended.");
                 }
             }
             else
