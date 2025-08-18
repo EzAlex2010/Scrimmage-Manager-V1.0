@@ -4,6 +4,7 @@ using System.Collections;
 using TMPro;
 using System.Text.RegularExpressions;
 using System.Diagnostics;
+using UnityEngine.UI;
 
 public class TMBridgeFieldsetController : MonoBehaviour
 {
@@ -16,9 +17,16 @@ public class TMBridgeFieldsetController : MonoBehaviour
     public float matchTime;
     public TextMeshProUGUI matchTimerText;
     public TextMeshProUGUI matchStateText;
-    private bool hasTriggeredReset = false;
     private bool canPoll = true; // Controls whether polling should happen
     private Process tmBridgeProcess;
+    public bool sendPollToLog; // Toggle for logging polling results
+    public string displayMatchState = "Unknown"; // Default state for display
+    public bool autoUpdateState;
+    public Button StartButton;
+    public Button EndEarlyButton;
+    public Button AbortButton;
+    public LeaderboardManager leaderboardManager;
+
 
     void StartTMBridge()
     {
@@ -60,6 +68,16 @@ public class TMBridgeFieldsetController : MonoBehaviour
     public void StartMatch()
     {
         StartCoroutine(SendFieldsetCommand("start"));
+        EndEarlyButton.interactable = true;
+        StartButton.interactable = false;
+        if (displayMatchState == "AUTONOMOUS")
+        {
+            displayMatchState = "DRIVER CONTROL";
+        }
+        else
+        {
+            displayMatchState = "AUTONOMOUS";
+        }
     }
 
     public void StopMatch()
@@ -71,12 +89,78 @@ public class TMBridgeFieldsetController : MonoBehaviour
     public void ResetTimer()
     {
         StartCoroutine(SendFieldsetCommand("reset"));
-        hasTriggeredReset = false;
     }
 
     public void EndEarlyMatch()
     {
-        StartCoroutine(SendFieldsetCommand("end-early"));
+        if (matchState == "DRIVER CONTROL")
+        {
+            StartCoroutine(EndEarlyAndEnd());
+        }
+        else
+        {
+            StartCoroutine(SendFieldsetCommand("end-early"));
+            StartButton.interactable = true;
+        }
+        EndEarlyButton.interactable = false; // Disable button after use
+    }
+
+    private IEnumerator EndEarlyAndEnd()
+    {
+        // Send the command first
+        yield return StartCoroutine(SendFieldsetCommand("end-early"));
+
+        // Wait 1–2 seconds
+        yield return new WaitForSeconds(1f);  // change 2f to 1f if you want 1 second
+
+        // Send A Match Ended message to the leaderboard manager here
+        leaderboardManager.EndMatch();
+        UnityEngine.Debug.Log("[TM] Match ended.");
+    }
+
+    public IEnumerator SkipAuton()
+    {
+        yield return StartCoroutine(FullReset());
+        yield return new WaitForSeconds(3f);
+        displayMatchState = "Skipping Auton";
+        matchStateText.text = displayMatchState;
+        yield return StartCoroutine(SendFieldsetCommand("start"));
+        yield return new WaitForSeconds(3f);
+        yield return StartCoroutine(SendFieldsetCommand("end-early"));
+    }
+
+    public IEnumerator FullReset()
+    {
+        displayMatchState = "Resetting";
+        matchStateText.text = displayMatchState;
+        yield return StartCoroutine(SendFieldsetCommand("start"));
+        yield return new WaitForSeconds(1f);
+        yield return StartCoroutine(SendFieldsetCommand("abort"));
+        yield return new WaitForSeconds(1f);
+        yield return StartCoroutine(SendFieldsetCommand("reset"));
+    }
+
+    public IEnumerator HandleMatchStart(bool runAuton)
+    {
+        StartButton.interactable = false;
+        EndEarlyButton.interactable = false;
+        AbortButton.interactable = false;
+        if (runAuton)
+        {
+            yield return StartCoroutine(FullReset());
+        }
+        else
+        {
+            yield return StartCoroutine(SkipAuton());
+        }
+
+        // These run only after the coroutine above finishes
+        autoUpdateState = true;
+        displayMatchState = "Ready to Start";
+        matchStateText.text = displayMatchState;
+        StartButton.interactable = true;
+        AbortButton.interactable = true;
+        UnityEngine.Debug.Log("[TM] Match setup complete. Ready to start.");
     }
 
     void Start()
@@ -86,6 +170,13 @@ public class TMBridgeFieldsetController : MonoBehaviour
         if (matchState != "paused") ResetTimer();
         StartCoroutine(PollMatchTime());
     }
+
+    public void UpdateMatchState()
+    {
+        if (matchState == "AUTONOMOUS") displayMatchState = "AUTONOMOUS";
+        else if (matchState == "DRIVER CONTROL") displayMatchState = "DRIVER CONTROL";
+        matchStateText.text = displayMatchState;
+    } 
 
     private IEnumerator PollMatchTime()
     {
@@ -104,18 +195,19 @@ public class TMBridgeFieldsetController : MonoBehaviour
             {
                 string json = request.downloadHandler.text;
                 FieldsetStatus status = JsonUtility.FromJson<FieldsetStatus>(json);
-                UnityEngine.Debug.Log($"[TM] Time: {status.match_timer_content} | State: {status.match_state}");
-                if (matchTimerText != null)
+                if (sendPollToLog) UnityEngine.Debug.Log($"[TM] Time: {status.match_timer_content} | State: {status.match_state}");
+                matchTimerText.text = status.match_timer_content;
+                matchState = status.match_state;
+                matchTime = status.match_time;
+                if (autoUpdateState)
                 {
-                    matchTimerText.text = status.match_timer_content;
-                    matchStateText.text = status.match_state;
-                    matchState = status.match_state;
-                    matchTime = status.match_time;
+                    UpdateMatchState();
                 }
-                if (status.match_time == 0 && !hasTriggeredReset)
+                if (status.match_time == 0 && matchState == "DRIVER CONTROL")
                 {
-                    hasTriggeredReset = true;
-                    StartCoroutine(DelayedResetTimer(postMatchDelaySeconds));
+                    // Tell the leaderboard manager to open the post-match screen
+                    leaderboardManager.EndMatch();
+                    UnityEngine.Debug.Log("[TM] Match ended.");
                 }
             }
             else
@@ -125,13 +217,6 @@ public class TMBridgeFieldsetController : MonoBehaviour
             }
             yield return new WaitForSeconds(pollIntervalSeconds);
         }
-    }
-
-    private IEnumerator DelayedResetTimer(float delay)
-    {
-        UnityEngine.Debug.Log("[TM] Match ended — waiting to reset...");
-        yield return new WaitForSeconds(delay);
-        //ResetTimer();
     }
 
     private IEnumerator SendFieldsetCommand(string command)

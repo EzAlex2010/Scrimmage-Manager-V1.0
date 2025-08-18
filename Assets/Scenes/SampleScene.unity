@@ -1020,6 +1020,7 @@ MonoBehaviour:
   Blue1: 
   Blue2: 
   runAuton: 1
+  tmBridgeController: {fileID: 2133471939}
   leaderboardText: {fileID: 1067955914}
   teamListContent: {fileID: 1062075237}
   selectedTeamContent: {fileID: 44436480}
@@ -5175,7 +5176,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Pasued
+  m_text: Unknown
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -6642,6 +6643,13 @@ MonoBehaviour:
   matchTime: 0
   matchTimerText: {fileID: 765200532}
   matchStateText: {fileID: 1630684213}
+  sendPollToLog: 0
+  displayMatchState: Unknown
+  autoUpdateState: 0
+  StartButton: {fileID: 245272314}
+  EndEarlyButton: {fileID: 2125176011}
+  AbortButton: {fileID: 853204939}
+  leaderboardManager: {fileID: 354701404}
 --- !u!4 &2133471940
 Transform:
   m_ObjectHideFlags: 0

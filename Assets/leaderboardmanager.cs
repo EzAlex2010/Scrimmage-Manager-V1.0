@@ -22,6 +22,8 @@ public class LeaderboardManager : MonoBehaviour
 
     public bool runAuton = true; // Flag to control auton mode. True by default
 
+    public TMBridgeFieldsetController tmBridgeController; // Reference to the TM Bridge controller
+
     [Header("UI References")]
     public TextMeshProUGUI leaderboardText;
 
@@ -318,5 +320,16 @@ public class LeaderboardManager : MonoBehaviour
         TeamRed2.text = Red2 ?? "N/A";
         TeamBlue1.text = Blue1 ?? "N/A";
         TeamBlue2.text = Blue2 ?? "N/A";
+        tmBridgeController.autoUpdateState = false;
+        //Setup Match
+        StartCoroutine(tmBridgeController.HandleMatchStart(runAuton));
+    }
+
+    public void EndMatch()
+    {
+        tmBridgeController.autoUpdateState = false;
+        tmBridgeController.displayMatchState = "Match Ended";
+        tmBridgeController.matchStateText.text = tmBridgeController.displayMatchState;
+        //Open Scoring Panel
     }
 }
