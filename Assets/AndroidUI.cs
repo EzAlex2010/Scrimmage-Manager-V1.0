@@ -230,7 +230,6 @@ public class AndroidUI : MonoBehaviour
         TeamBlue1.text = Blue1 ?? "N/A";
         TeamBlue2.text = Blue2 ?? "N/A";
         tabletClient.SendCommand($"CreateMatch|Red1:{Red1}|Red2:{Red2}|Blue1:{Blue1}|Blue2:{Blue2}|Auton:{runAuton}|Record:{recordScores}");
-
     }
 
     public void EndMatch()
