@@ -27,6 +27,7 @@ public class TMBridgeFieldsetController : MonoBehaviour
     public Button AbortButton;
     public LeaderboardManager leaderboardManager;
     public bool autonStarted;
+    public PCServer pcServer;
 
 
     void StartTMBridge()
@@ -115,7 +116,7 @@ public class TMBridgeFieldsetController : MonoBehaviour
         yield return new WaitForSeconds(1f);  // change 2f to 1f if you want 1 second
 
         // Send A Match Ended message to the leaderboard manager here
-        leaderboardManager.EndMatch();
+        pcServer.SendToTablet("MatchEnded");
         UnityEngine.Debug.Log("[TM] Match ended.");
     }
 
@@ -177,7 +178,7 @@ public class TMBridgeFieldsetController : MonoBehaviour
         if (matchState == "AUTONOMOUS") displayMatchState = "AUTONOMOUS";
         else if (matchState == "DRIVER CONTROL") displayMatchState = "DRIVER CONTROL";
         matchStateText.text = displayMatchState;
-    } 
+    }
 
     private IEnumerator PollMatchTime()
     {
@@ -206,7 +207,7 @@ public class TMBridgeFieldsetController : MonoBehaviour
                 }
                 if (status.match_time == 0 && matchState == "DRIVER CONTROL")
                 {
-                    leaderboardManager.EndMatch();
+                    pcServer.SendToTablet("MatchEnded");
                     UnityEngine.Debug.Log("[TM] Match ended.");
                 }
                 if (status.match_time == 15 && displayMatchState == "AUTONOMOUS") autonStarted = true;
@@ -244,6 +245,13 @@ public class TMBridgeFieldsetController : MonoBehaviour
         {
             UnityEngine.Debug.LogError($"Failed to send command '{command}'\n{request.error}");
         }
+    }
+
+    public void EndMatch()
+    {
+        autoUpdateState = false;
+        displayMatchState = "Match Ended";
+        matchStateText.text = displayMatchState;
     }
 }
 
