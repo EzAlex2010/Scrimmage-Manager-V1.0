@@ -12,6 +12,7 @@ public class LeaderboardManager : MonoBehaviour
     public string passcode = "6741 Robotics";
 
     public TMBridgeFieldsetController tmBridgeController; // Reference to the TM Bridge controller
+    public PCServer pcServer; // Reference to your PCServer script
 
     [Header("UI References")]
     public TextMeshProUGUI leaderboardText;
@@ -61,6 +62,14 @@ public class LeaderboardManager : MonoBehaviour
         UpdateLeaderboardDisplay();
     }
 
+    public string GetTeamDataMessage()
+    {
+        // Wrap the teamScores list in your existing wrapper so it serializes cleanly
+        string json = JsonUtility.ToJson(new TeamDataListWrapper { teamScores = teamScores });
+        Debug.Log("Serialized team data JSON: " + json);
+        return "TeamData:" + json;
+    }
+
     public void AddWinPoints(string teamName, int winPoints)
     {
         TeamData existing = teamScores.Find(t => t.teamName == teamName);
@@ -74,6 +83,7 @@ public class LeaderboardManager : MonoBehaviour
         }
         teamScores.Sort((a, b) => b.winpoints.CompareTo(a.winpoints));
         SaveScores();
+        pcServer.SendToTablet(GetTeamDataMessage());
     }
 
     public void SaveScores()

@@ -1,4 +1,4 @@
-#if UNITY_ANDROID
+#if UNITY_ANDROID || UNITY_EDITOR
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
@@ -43,6 +43,18 @@ public class AndroidUI : MonoBehaviour
     public TMP_Text TeamBlue2;
     public GameObject ControlPanel; // Panel to control the match
     public GameObject ScoringPanel; // Panel to score the match
+
+    void Start()
+    {
+        CreateMatchButton.SetActive(true);
+    }
+
+    public void SaveTeamData(List<TeamData> newTeams)
+    {
+        teamScores = newTeams ?? new List<TeamData>();
+        Debug.Log($"[AndroidUI] Loaded {teamScores.Count} teams from JSON");
+        UpdateLeaderboardDisplay();
+    }
 
     public void UpdateLeaderboardDisplay()
     {

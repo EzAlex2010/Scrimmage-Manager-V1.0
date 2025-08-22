@@ -1,4 +1,4 @@
-#if UNITY_ANDROID
+#if UNITY_ANDROID || UNITY_EDITOR
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -15,9 +15,19 @@ public class TabletClient : MonoBehaviour
 
     void Start()
     {
-        udp = new UdpClient();
-        udp.Client.Bind(new IPEndPoint(IPAddress.Any, 0)); // allow receiving too
-        udp.BeginReceive(ReceiveCallback, null);
+        // Only run this code at runtime on Android devices
+        if (Application.platform == RuntimePlatform.Android)
+        {
+            udp = new UdpClient();
+            udp.Client.Bind(new IPEndPoint(IPAddress.Any, 0)); // allow receiving too
+            udp.BeginReceive(ReceiveCallback, null);
+            SendCommand("HelloFromTablet");
+        }
+    }
+
+    public void ReSendHello()
+    {
+        SendCommand("HelloFromTablet");
     }
 
     public void SendCommand(string command)
@@ -46,10 +56,16 @@ public class TabletClient : MonoBehaviour
     {
         if (message.StartsWith("TeamData:"))
         {
-            string teamInfo = message.Substring("TeamData:".Length);
-            Debug.Log("Tablet: Got team info - " + teamInfo);
+            string teamInfoJson = message.Substring("TeamData:".Length);
+            Debug.Log("Tablet: Got team info JSON - " + teamInfoJson);
 
-            // TODO: Update your tablet UI with this info
+            TeamDataListWrapper wrapper = JsonUtility.FromJson<TeamDataListWrapper>(teamInfoJson);
+
+            if (wrapper != null && wrapper.teamScores != null)
+            {
+                // update your UI
+                androidUI.SaveTeamData(wrapper.teamScores);
+            }
         }
         if (message == "MatchEnded")
         {

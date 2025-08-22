@@ -1,3 +1,4 @@
+#if UNITY_STANDALONE || UNITY_EDITOR
 using UnityEngine;
 using UnityEngine.Networking;
 using System.Collections;
@@ -254,5 +255,4 @@ public class TMBridgeFieldsetController : MonoBehaviour
         matchStateText.text = displayMatchState;
     }
 }
-
-
+#endif

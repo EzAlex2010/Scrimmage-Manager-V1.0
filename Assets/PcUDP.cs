@@ -40,6 +40,10 @@ public class PCServer : MonoBehaviour
     private void HandleCommand(string message)
     {
         // Example: handle tablet commands
+        if (message == "HelloFromTablet")
+        {
+            Debug.Log("PC: Tablet registered, can send now!");
+        }
         if (message.StartsWith("CreateMatch"))
         {
             Debug.Log("PC: Match creation request: " + message);
