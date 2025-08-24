@@ -27,8 +27,13 @@ public class PCServer : MonoBehaviour
 
         Debug.Log("PC Received: " + message);
 
-        // Save tablet endpoint so we can send back to it
-        tabletEndpoint = ip;
+        if (message == "HelloFromTablet")
+        {
+            // ip contains tablet's IP and source port
+            tabletEndpoint = ip;
+            SendToTablet("HelloAck");
+            SendToTablet(leaderboardManager.GetTeamDataMessage());
+        }
 
         // Handle the command
         HandleCommand(message);
@@ -40,10 +45,6 @@ public class PCServer : MonoBehaviour
     private void HandleCommand(string message)
     {
         // Example: handle tablet commands
-        if (message == "HelloFromTablet")
-        {
-            Debug.Log("PC: Tablet registered, can send now!");
-        }
         if (message.StartsWith("CreateMatch"))
         {
             Debug.Log("PC: Match creation request: " + message);
@@ -64,6 +65,8 @@ public class PCServer : MonoBehaviour
             byte[] data = Encoding.UTF8.GetBytes(message);
             udp.Send(data, data.Length, tabletEndpoint);
             Debug.Log("PC Sent: " + message);
+        } else {
+            Debug.LogWarning("PC: No tablet connected to send data to.");
         }
     }
 

@@ -8,47 +8,67 @@ using System;
 public class TabletClient : MonoBehaviour
 {
     private UdpClient udp;
-    public string pcIP = "192.168.1.100"; // Change this to your PC's LAN IP
-    private int pcPort = 9050;
+    private IPEndPoint pcEndPoint;
+    private bool registered = false;
+    public AndroidUI androidUI; // Reference to your UI script
 
-    public AndroidUI androidUI; // Reference to your AndroidUI script
+    private int tabletPort = 9051; // arbitrary free port
+    private int pcPort = 9050;     // PC listening port
 
     void Start()
     {
-        // Only run this code at runtime on Android devices
         if (Application.platform == RuntimePlatform.Android)
         {
-            udp = new UdpClient();
-            udp.Client.Bind(new IPEndPoint(IPAddress.Any, 0)); // allow receiving too
+            udp = new UdpClient(); // no port binding
+            udp.EnableBroadcast = true;
             udp.BeginReceive(ReceiveCallback, null);
-            SendCommand("HelloFromTablet");
+            InvokeRepeating(nameof(SendHello), 0f, 3f);
         }
     }
 
-    public void ReSendHello()
+    void SendHello()
     {
-        SendCommand("HelloFromTablet");
+        if (!registered)
+        {
+            byte[] data = Encoding.UTF8.GetBytes("HelloFromTablet");
+            IPEndPoint broadcastEP = new IPEndPoint(IPAddress.Broadcast, pcPort);
+            udp.Send(data, data.Length, broadcastEP);
+            Debug.Log("Tablet: broadcast hello...");
+        }
     }
 
     public void SendCommand(string command)
     {
-        byte[] data = Encoding.UTF8.GetBytes(command);
-        udp.Send(data, data.Length, pcIP, pcPort);
-        Debug.Log("Tablet Sent: " + command);
+        if (pcEndPoint != null)
+        {
+            byte[] data = Encoding.UTF8.GetBytes(command);
+            udp.Send(data, data.Length, pcEndPoint);
+            Debug.Log("Tablet Sent: " + command);
+        }
+        else
+        {
+            Debug.LogWarning("Tablet: PC endpoint unknown, cannot send " + command);
+        }
     }
 
     private void ReceiveCallback(IAsyncResult ar)
     {
-        IPEndPoint ip = new IPEndPoint(IPAddress.Any, 0);
-        byte[] data = udp.EndReceive(ar, ref ip);
+        IPEndPoint remoteEP = new IPEndPoint(IPAddress.Any, 0);
+        byte[] data = udp.EndReceive(ar, ref remoteEP);
         string message = Encoding.UTF8.GetString(data);
 
         Debug.Log("Tablet Received: " + message);
 
-        // Handle PC updates
+        if (!registered)
+        {
+            registered = true;
+            pcEndPoint = remoteEP; // save the endpoint to send future messages
+            Debug.Log("Tablet: registered with PC at " + pcEndPoint.Address + ":" + pcEndPoint.Port);
+        }
+
+        // Handle incoming messages
         HandleUpdate(message);
 
-        // Keep listening
         udp.BeginReceive(ReceiveCallback, null);
     }
 
@@ -75,7 +95,7 @@ public class TabletClient : MonoBehaviour
 
     void OnApplicationQuit()
     {
-        udp.Close();
+        if (udp != null) udp.Close();
     }
 }
 #endif
