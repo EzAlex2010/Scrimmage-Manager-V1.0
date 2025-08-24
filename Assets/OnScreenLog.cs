@@ -1,3 +1,4 @@
+#if UNITY_ANDROID
 using UnityEngine;
 using TMPro; // or TMPro if you want TMP instead
 
@@ -31,3 +32,4 @@ public class OnScreenLogger : MonoBehaviour
         logText.text = logBuffer;
     }
 }
+#endif

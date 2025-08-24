@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using System.Text;
 using UnityEngine;
 using System;
+using System.Collections.Concurrent;
 
 public class TabletClient : MonoBehaviour
 {
@@ -14,6 +15,21 @@ public class TabletClient : MonoBehaviour
 
     private int tabletPort = 9051; // arbitrary free port
     private int pcPort = 9050;     // PC listening port
+
+    private static readonly ConcurrentQueue<Action> actions = new ConcurrentQueue<Action>();
+
+    public static void RunOnMainThread(Action action)
+    {
+        actions.Enqueue(action);
+    }
+
+    void Update()
+    {
+        while (actions.TryDequeue(out var action))
+        {
+            action?.Invoke();
+        }
+    }
 
     void Start()
     {
@@ -57,40 +73,62 @@ public class TabletClient : MonoBehaviour
         byte[] data = udp.EndReceive(ar, ref remoteEP);
         string message = Encoding.UTF8.GetString(data);
 
-        Debug.Log("Tablet Received: " + message);
-
-        if (!registered)
-        {
-            registered = true;
-            pcEndPoint = remoteEP; // save the endpoint to send future messages
-            Debug.Log("Tablet: registered with PC at " + pcEndPoint.Address + ":" + pcEndPoint.Port);
-        }
-
-        // Handle incoming messages
-        HandleUpdate(message);
-
+        RunOnMainThread(() => {
+            if (!registered)
+            {
+                registered = true;
+                pcEndPoint = remoteEP; // save the endpoint to send future messages
+                Debug.Log("Tablet: registered with PC at " + pcEndPoint.Address + ":" + pcEndPoint.Port);
+            }
+            HandleUpdate(message);
+        });
+        // Keep listening
         udp.BeginReceive(ReceiveCallback, null);
     }
 
     private void HandleUpdate(string message)
     {
+        if (!message.StartsWith("MatchState")&&!message.StartsWith("MatchTime")) Debug.Log("Received: " + message);
         if (message.StartsWith("TeamData:"))
-        {
-            string teamInfoJson = message.Substring("TeamData:".Length);
-            Debug.Log("Tablet: Got team info JSON - " + teamInfoJson);
-
-            TeamDataListWrapper wrapper = JsonUtility.FromJson<TeamDataListWrapper>(teamInfoJson);
-
-            if (wrapper != null && wrapper.teamScores != null)
             {
-                // update your UI
-                androidUI.SaveTeamData(wrapper.teamScores);
+                string teamInfoJson = message.Substring("TeamData:".Length);
+                Debug.Log("Tablet: Got team info JSON - " + teamInfoJson);
+                TeamDataListWrapper wrapper = JsonUtility.FromJson<TeamDataListWrapper>(teamInfoJson);
+                if (wrapper != null && wrapper.teamScores != null)
+                {
+                    // update your UI
+                    androidUI.SaveTeamData(wrapper.teamScores);
+                }
             }
-        }
-        if (message == "MatchEnded")
-        {
-            androidUI.EndMatch();
-        }
+            else if (message == "MatchEnded")
+            {
+                androidUI.EndMatch();
+            }
+            else if (message.StartsWith("MatchState:"))
+            {
+                string state = message.Substring("MatchState:".Length);
+                androidUI.UpdateMatchState(state);
+            }
+            else if (message.StartsWith("MatchTime:"))
+            {
+                string time = message.Substring("MatchTime:".Length);
+                androidUI.UpdateMatchTime(time);
+            }
+            else if (message.StartsWith("Button:"))
+            {
+                string button = message.Substring("Button:".Length);
+                Debug.Log(button);
+                if (button.StartsWith("Disable:"))
+                {
+                    string btnName = button.Substring("Disable:".Length);
+                    androidUI.SetButtonInteractable(btnName, false);
+                }
+                else if (button.StartsWith("Enable:"))
+                {
+                    string btnName = button.Substring("Enable:".Length);
+                    androidUI.SetButtonInteractable(btnName, true);
+                }
+            }
     }
 
     void OnApplicationQuit()

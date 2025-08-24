@@ -2050,7 +2050,7 @@ MonoBehaviour:
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
   m_ReferenceResolution: {x: 800, y: 600}
-  m_ScreenMatchMode: 0
+  m_ScreenMatchMode: 2
   m_MatchWidthOrHeight: 0
   m_PhysicalUnit: 3
   m_FallbackScreenDPI: 96
@@ -3297,9 +3297,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1731515871}
-        m_TargetAssemblyTypeName: TMBridgeFieldsetController, Assembly-CSharp
-        m_MethodName: 
+      - m_Target: {fileID: 1731515872}
+        m_TargetAssemblyTypeName: AndroidUI, Assembly-CSharp
+        m_MethodName: EndMatch
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -4155,7 +4155,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -80.86316, y: 0}
+  m_AnchoredPosition: {x: -113, y: 7.1}
   m_SizeDelta: {x: 1440.3, y: 941.3}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1155190365
@@ -4956,7 +4956,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 1040, y: -500}
+  m_AnchoredPosition: {x: 1338, y: -500}
   m_SizeDelta: {x: 600, y: 320}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1494061497
@@ -5785,6 +5785,11 @@ MonoBehaviour:
   TeamBlue1: {fileID: 1408990346}
   TeamBlue2: {fileID: 1371962335}
   ControlPanel: {fileID: 1895937303}
+  StartMatchButton: {fileID: 245272314}
+  EndEarlyButton: {fileID: 2125176011}
+  AbortMatchButton: {fileID: 853204939}
+  MatchStateText: {fileID: 1630684213}
+  MatchTimeText: {fileID: 765200532}
   ScoringPanel: {fileID: 1811564078}
 --- !u!114 &1731515873
 MonoBehaviour:
@@ -7401,14 +7406,9 @@ MonoBehaviour:
   postMatchDelaySeconds: 3
   matchState: 
   matchTime: 0
-  matchTimerText: {fileID: 765200532}
-  matchStateText: {fileID: 1630684213}
   sendPollToLog: 0
   displayMatchState: Unknown
   autoUpdateState: 0
-  StartButton: {fileID: 245272314}
-  EndEarlyButton: {fileID: 2125176011}
-  AbortButton: {fileID: 853204939}
   leaderboardManager: {fileID: 354701404}
   autonStarted: 0
   pcServer: {fileID: 354701406}

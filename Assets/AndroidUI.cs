@@ -3,6 +3,7 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 public class AndroidUI : MonoBehaviour
 {
     public TabletClient tabletClient; // Reference to your TabletClient script
@@ -41,12 +42,22 @@ public class AndroidUI : MonoBehaviour
     public TMP_Text TeamRed2;
     public TMP_Text TeamBlue1;
     public TMP_Text TeamBlue2;
+    [Header("Control Panel")]
     public GameObject ControlPanel; // Panel to control the match
+    public Button StartMatchButton;
+    public Button EndEarlyButton;
+    public Button AbortMatchButton;
+    public TMP_Text MatchStateText;
+    public TMP_Text MatchTimeText;
+    [Header("Scoring Panel")]
     public GameObject ScoringPanel; // Panel to score the match
 
     void Start()
     {
-        CreateMatchButton.SetActive(true);
+        if (Application.platform == RuntimePlatform.Android)
+        {
+            CreateMatchButton.SetActive(true);
+        }
     }
 
     public void SaveTeamData(List<TeamData> newTeams)
@@ -260,6 +271,35 @@ public class AndroidUI : MonoBehaviour
     public void EndMatchEarly()
     {
         tabletClient.SendCommand("EndMatchEarly");
+    }
+
+    public void UpdateMatchState(string state)
+    {
+        MatchStateText.text = state;
+    }
+
+    public void UpdateMatchTime(string time)
+    {
+        MatchTimeText.text = time;
+    }
+
+    public void SetButtonInteractable(string buttonName, bool interactable)
+    {
+        switch (buttonName)
+        {
+            case "Start":
+                StartMatchButton.interactable = interactable;
+                break;
+            case "EndEarly":
+                EndEarlyButton.interactable = interactable;
+                break;
+            case "Abort":
+                AbortMatchButton.interactable = interactable;
+                break;
+            default:
+                Debug.LogWarning($"Unknown button name: {buttonName}");
+                break;
+        }
     }
 }
 
