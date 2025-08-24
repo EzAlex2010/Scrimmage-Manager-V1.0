@@ -55,7 +55,8 @@ public class AndroidUI : MonoBehaviour
 
     [Header("Leaderboard Panel")]
     public GameObject LeaderboardPanel; // Panel to view the leaderboard
-    public TextMeshProUGUI leaderboardText; // Text area to show leaderboard
+    public Transform scrollContent;      // Reference to the ScrollView Content object
+    public GameObject teamDataPrefab;    // Reference to your TeamData_UI prefab
 
     void Start()
     {
@@ -70,16 +71,28 @@ public class AndroidUI : MonoBehaviour
     {
         teamScores = newTeams ?? new List<TeamData>();
         Debug.Log($"[AndroidUI] Loaded {teamScores.Count} teams from JSON");
-        UpdateLeaderboardDisplay();
     }
 
     public void UpdateLeaderboardDisplay()
     {
-        leaderboardText.text = "";
+        Debug.Log("[AndroidUI] Updating leaderboard display...");
+        // Clear previous entries
+        foreach (Transform child in scrollContent)
+        {
+            Destroy(child.gameObject);
+        }
+
+        // Sort teamScores by winpoints descending
+        teamScores.Sort((a, b) => b.winpoints.CompareTo(a.winpoints));
+
+        // Instantiate prefabs for each team
         foreach (var team in teamScores)
         {
-            leaderboardText.text += $"{team.teamName}: {team.winpoints}\n";
+            GameObject item = Instantiate(teamDataPrefab, scrollContent);
+            TeamData_UI ui = item.GetComponent<TeamData_UI>();
+            ui.Setup(team);
         }
+        Debug.Log("[AndroidUI] Leaderboard display updated.");
     }
 
     public void OpenMatchCreation()

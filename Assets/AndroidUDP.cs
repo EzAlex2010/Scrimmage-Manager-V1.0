@@ -5,6 +5,7 @@ using System.Text;
 using UnityEngine;
 using System;
 using System.Collections.Concurrent;
+using TMPro;
 
 public class TabletClient : MonoBehaviour
 {
@@ -12,8 +13,7 @@ public class TabletClient : MonoBehaviour
     private IPEndPoint pcEndPoint;
     private bool registered = false;
     public AndroidUI androidUI; // Reference to your UI script
-
-    private int tabletPort = 9051; // arbitrary free port
+    public GameObject connectiontext;
     private int pcPort = 9050;     // PC listening port
 
     private static readonly ConcurrentQueue<Action> actions = new ConcurrentQueue<Action>();
@@ -88,7 +88,8 @@ public class TabletClient : MonoBehaviour
 
     private void HandleUpdate(string message)
     {
-        if (!message.StartsWith("MatchState")&&!message.StartsWith("MatchTime")) Debug.Log("Received: " + message);
+        connectiontext.SetActive(false);
+        if (!message.StartsWith("MatchState") && !message.StartsWith("MatchTime")) Debug.Log("Received: " + message);
         if (message.StartsWith("TeamData:"))
             {
                 string teamInfoJson = message.Substring("TeamData:".Length);

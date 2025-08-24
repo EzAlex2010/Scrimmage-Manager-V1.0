@@ -21,9 +21,6 @@ public class LeaderboardManager : MonoBehaviour
 
     public bool runAuton = true; // Flag to control auton mode. True by default
 
-    [Header("UI References")]
-    public TextMeshProUGUI leaderboardText;
-
     public void test()
     {
         ClearScores();
@@ -40,16 +37,6 @@ public class LeaderboardManager : MonoBehaviour
         AddWinPoints("6741Z", 0);
         AddWinPoints("6741N", 0);
         AddWinPoints("6741M", 0);
-        UpdateLeaderboardDisplay();
-    }
-
-    public void UpdateLeaderboardDisplay()
-    {
-        leaderboardText.text = "";
-        foreach (var team in teamScores)
-        {
-            leaderboardText.text += $"{team.teamName}: {team.winpoints}\n";
-        }
     }
 
     void Awake()
@@ -66,7 +53,6 @@ public class LeaderboardManager : MonoBehaviour
 
         filePath = Application.persistentDataPath + "/leaderboard.json";
         LoadScores();
-        UpdateLeaderboardDisplay();
     }
 
     public string GetTeamDataMessage()
