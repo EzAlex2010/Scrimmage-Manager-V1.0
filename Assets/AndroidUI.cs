@@ -15,18 +15,17 @@ public class AndroidUI : MonoBehaviour
     public string Red2;
     public string Blue1;
     public string Blue2;
-
     public bool runAuton = true; // Flag to control auton mode. True by default
     public string passcode;
 
     [Header("UI References")]
-    public TextMeshProUGUI leaderboardText;
+    public GameObject CreateMatchButton; // Button to create a match
+    public GameObject ViewLeaderboardButton; // Button to create a match
 
     [Header("Team Selection Panel")]
     public Transform teamListContent; // The Scroll View Content object
     public Transform selectedTeamContent; // The other scroll list
     public GameObject teamButtonPrefab; // The button prefab
-    public GameObject CreateMatchButton; // Button to create a match
     public GameObject TeamSelectPanel; // Panel to show team selection UI
 
     [Header("Match Settings Panel")]
@@ -42,6 +41,7 @@ public class AndroidUI : MonoBehaviour
     public TMP_Text TeamRed2;
     public TMP_Text TeamBlue1;
     public TMP_Text TeamBlue2;
+
     [Header("Control Panel")]
     public GameObject ControlPanel; // Panel to control the match
     public Button StartMatchButton;
@@ -49,14 +49,20 @@ public class AndroidUI : MonoBehaviour
     public Button AbortMatchButton;
     public TMP_Text MatchStateText;
     public TMP_Text MatchTimeText;
+
     [Header("Scoring Panel")]
     public GameObject ScoringPanel; // Panel to score the match
+
+    [Header("Leaderboard Panel")]
+    public GameObject LeaderboardPanel; // Panel to view the leaderboard
+    public TextMeshProUGUI leaderboardText; // Text area to show leaderboard
 
     void Start()
     {
         if (Application.platform == RuntimePlatform.Android)
         {
             CreateMatchButton.SetActive(true);
+            ViewLeaderboardButton.SetActive(true);
         }
     }
 
@@ -80,13 +86,30 @@ public class AndroidUI : MonoBehaviour
     {
         TeamSelectPanel.SetActive(true);
         CreateMatchButton.SetActive(false);
+        ViewLeaderboardButton.SetActive(false);
         PopulateTeamButtons();
+    }
+
+    public void OpenLeaderboard()
+    {
+        LeaderboardPanel.SetActive(true);
+        CreateMatchButton.SetActive(false);
+        ViewLeaderboardButton.SetActive(false);
+        UpdateLeaderboardDisplay();
     }
 
     public void CloseMatchCreation()
     {
         TeamSelectPanel.SetActive(false);
         CreateMatchButton.SetActive(true);
+        ViewLeaderboardButton.SetActive(true);
+    }
+
+    public void CloseLeaderboard()
+    {
+        LeaderboardPanel.SetActive(false);
+        CreateMatchButton.SetActive(true);
+        ViewLeaderboardButton.SetActive(true);
     }
 
     public void SetRunAuton(bool value)
