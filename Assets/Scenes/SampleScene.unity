@@ -932,13 +932,13 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1731515871}
-        m_TargetAssemblyTypeName: 
-        m_MethodName: 
+      - m_Target: {fileID: 1731515872}
+        m_TargetAssemblyTypeName: AndroidUI, Assembly-CSharp
+        m_MethodName: StartMatch
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: 
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
@@ -1016,6 +1016,12 @@ MonoBehaviour:
   passcode: 6741 Robotics
   tmBridgeController: {fileID: 2133471939}
   pcServer: {fileID: 354701406}
+  recordScores: 0
+  Red1: 
+  Red2: 
+  Blue1: 
+  Blue2: 
+  runAuton: 1
   leaderboardText: {fileID: 1067955914}
 --- !u!4 &354701405
 Transform:
@@ -5792,7 +5798,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 535689d0f21db9b4182fadf6e9e493f4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pcIP: 192.168.1.100
   androidUI: {fileID: 1731515872}
 --- !u!4 &1731515874
 Transform:
@@ -7313,7 +7318,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1731515872}
         m_TargetAssemblyTypeName: AndroidUI, Assembly-CSharp
-        m_MethodName: 
+        m_MethodName: EndMatchEarly
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

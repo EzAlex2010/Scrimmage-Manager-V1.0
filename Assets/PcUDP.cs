@@ -49,18 +49,18 @@ public class PCServer : MonoBehaviour
         if (message.StartsWith("CreateMatch"))
         {
             Debug.Log("PC: Match creation request: " + message);
-    
+
             // Split the message by '|'
             string[] parts = message.Split('|');
-    
+
             // Use LeaderboardManager.Instance
             var lm = LeaderboardManager.Instance;
-    
+
             // Reset fields first if needed
             lm.Red1 = lm.Red2 = lm.Blue1 = lm.Blue2 = "";
             lm.runAuton = true;
             lm.recordScores = false;
-    
+
             foreach (var part in parts)
             {
                 if (part.StartsWith("Red1:"))
@@ -76,13 +76,31 @@ public class PCServer : MonoBehaviour
                 else if (part.StartsWith("Record:"))
                     lm.recordScores = part.Substring("Record:".Length).ToLower() == "true";
             }
-    
+            if (lm.runAuton)
+            {
+                tmBridgeController.FullReset();
+            }
+            else
+            {
+                tmBridgeController.SkipAuton();
+            }
             Debug.Log($"Match Setup: Red1={lm.Red1}, Red2={lm.Red2}, Blue1={lm.Blue1}, Blue2={lm.Blue2}, Auton={lm.runAuton}, Record={lm.recordScores}");
         }
         else if (message == "EndMatch")
         {
             Debug.Log("PC: End match requested");
-            // Call StopMatch()
+            tmBridgeController.EndEarlyMatch();
+        }
+        else if (message == "StartMatch")
+        {
+            Debug.Log("PC: Start match requested");
+            tmBridgeController.StartMatch();
+        } else if (message == "SkipAuton") {
+            Debug.Log("PC: Skip auton requested");
+            tmBridgeController.SkipAuton();
+        } else if (message == "FullReset") {
+            Debug.Log("PC: Full reset requested");
+            tmBridgeController.FullReset();
         }
     }
 

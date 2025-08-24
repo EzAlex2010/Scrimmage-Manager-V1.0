@@ -251,6 +251,16 @@ public class AndroidUI : MonoBehaviour
         ControlPanel.SetActive(false);
         ScoringPanel.SetActive(true);
     }
+
+    public void StartMatch()
+    {
+        tabletClient.SendCommand("StartMatch");
+    }
+
+    public void EndMatchEarly()
+    {
+        tabletClient.SendCommand("EndMatchEarly");
+    }
 }
 
 #endif
