@@ -13,6 +13,13 @@ public class LeaderboardManager : MonoBehaviour
 
     public TMBridgeFieldsetController tmBridgeController; // Reference to the TM Bridge controller
     public PCServer pcServer; // Reference to your PCServer script
+    public bool recordScores = false;
+    public string Red1;
+    public string Red2;
+    public string Blue1;
+    public string Blue2;
+
+    public bool runAuton = true; // Flag to control auton mode. True by default
 
     [Header("UI References")]
     public TextMeshProUGUI leaderboardText;

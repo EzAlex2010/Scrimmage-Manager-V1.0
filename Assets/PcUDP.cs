@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using System.Text;
 using UnityEngine;
 using System;
+using System.Collections.Generic;
 
 public class PCServer : MonoBehaviour
 {
@@ -48,7 +49,35 @@ public class PCServer : MonoBehaviour
         if (message.StartsWith("CreateMatch"))
         {
             Debug.Log("PC: Match creation request: " + message);
-            // TODO: Parse Red1/Blue1/etc. from message and call your match manager
+    
+            // Split the message by '|'
+            string[] parts = message.Split('|');
+    
+            // Use LeaderboardManager.Instance
+            var lm = LeaderboardManager.Instance;
+    
+            // Reset fields first if needed
+            lm.Red1 = lm.Red2 = lm.Blue1 = lm.Blue2 = "";
+            lm.runAuton = true;
+            lm.recordScores = false;
+    
+            foreach (var part in parts)
+            {
+                if (part.StartsWith("Red1:"))
+                    lm.Red1 = part.Substring("Red1:".Length);
+                else if (part.StartsWith("Red2:"))
+                    lm.Red2 = part.Substring("Red2:".Length);
+                else if (part.StartsWith("Blue1:"))
+                    lm.Blue1 = part.Substring("Blue1:".Length);
+                else if (part.StartsWith("Blue2:"))
+                    lm.Blue2 = part.Substring("Blue2:".Length);
+                else if (part.StartsWith("Auton:"))
+                    lm.runAuton = part.Substring("Auton:".Length).ToLower() == "true";
+                else if (part.StartsWith("Record:"))
+                    lm.recordScores = part.Substring("Record:".Length).ToLower() == "true";
+            }
+    
+            Debug.Log($"Match Setup: Red1={lm.Red1}, Red2={lm.Red2}, Blue1={lm.Blue1}, Blue2={lm.Blue2}, Auton={lm.runAuton}, Record={lm.recordScores}");
         }
         else if (message == "EndMatch")
         {
