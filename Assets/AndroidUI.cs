@@ -52,6 +52,9 @@ public class AndroidUI : MonoBehaviour
 
     [Header("Scoring Panel")]
     public GameObject ScoringPanel; // Panel to score the match
+    public Button SubmitScoresButton;
+    public TMP_InputField BlueScoreInput;
+    public TMP_InputField RedScoreInput;
 
     [Header("Leaderboard Panel")]
     public GameObject LeaderboardPanel; // Panel to view the leaderboard
@@ -312,6 +315,34 @@ public class AndroidUI : MonoBehaviour
     public void UpdateMatchState(string state)
     {
         MatchStateText.text = state;
+    }
+
+    public void SubmitScores()
+    {
+        // Hide UI
+        ControlPanel.SetActive(false);
+        ScoringPanel.SetActive(false);
+        RunMatchPanel.SetActive(false);
+        CreateMatchButton.SetActive(true);
+        ViewLeaderboardButton.SetActive(true);
+
+        // Clear selected teams for next match
+        foreach (Transform child in selectedTeamContent)
+            Destroy(child.gameObject);
+
+        if (!recordScores) return;
+
+        // Parse input safely
+        if (!int.TryParse(RedScoreInput.text, out int redScore) ||
+            !int.TryParse(BlueScoreInput.text, out int blueScore) ||
+            redScore < 0 || blueScore < 0)
+        {
+            Debug.Log("Scores must be valid non-negative integers.");
+            return;
+        }
+
+        string result = $"MatchResult|Red1:{Red1}|Red2:{Red2}|Blue1:{Blue1}|Blue2:{Blue2}|RedScore:{redScore}|BlueScore:{blueScore}";
+        tabletClient.SendCommand(result);
     }
 
     public void UpdateMatchTime(string time)

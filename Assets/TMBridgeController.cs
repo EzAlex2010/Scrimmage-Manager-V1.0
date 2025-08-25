@@ -5,6 +5,8 @@ using System.Collections;
 using System.Diagnostics;
 using System.Collections.Concurrent;
 using System;
+using UnityEngine.UI;
+using TMPro;
 
 public class TMBridgeFieldsetController : MonoBehaviour
 {
@@ -20,12 +22,15 @@ public class TMBridgeFieldsetController : MonoBehaviour
     public bool sendPollToLog; // Toggle for logging polling results
     public string displayMatchState = "Unknown"; // Default state for display
     public bool autoUpdateState;
-    //public Button StartButton;
-    //public Button EndEarlyButton;
-    //public Button AbortButton;
+    public Button StartButton;
+    public Button EndEarlyButton;
+    public Button AbortButton;
+    public TMP_Text MatchStateText;
+    public TMP_Text MatchTimeText;
     public LeaderboardManager leaderboardManager;
     public bool autonStarted;
     public PCServer pcServer;
+    public string matchTimeNice;
 
     private static readonly ConcurrentQueue<Action> actions = new ConcurrentQueue<Action>();
 
@@ -84,8 +89,8 @@ public class TMBridgeFieldsetController : MonoBehaviour
     {
         UnityEngine.Debug.Log("Starting Match");
         StartCoroutine(SendFieldsetCommand("start"));
-        pcServer.SendToTablet("Button:Enable:EndEarly");
-        pcServer.SendToTablet("Button:Disable:Start");
+        ButtonControl("Start", false);
+        ButtonControl("EndEarly", true);
         UnityEngine.Debug.Log("About to set displayMatchState...");
         if (displayMatchState == "AUTONOMOUS")
         {
@@ -120,9 +125,9 @@ public class TMBridgeFieldsetController : MonoBehaviour
         else
         {
             StartCoroutine(SendFieldsetCommand("end-early"));
-            pcServer.SendToTablet("Button:Enable:Start");
+            ButtonControl("Start", true);
         }
-        pcServer.SendToTablet("Button:Disable:EndEarly"); // Disable button after use
+        ButtonControl("EndEarly", false); // Disable button after use
     }
 
     private IEnumerator EndEarlyAndEnd()
@@ -163,9 +168,9 @@ public class TMBridgeFieldsetController : MonoBehaviour
     public IEnumerator HandleMatchStart(bool runAuton)
     {
         UnityEngine.Debug.Log("[TM] Setting up match...");
-        pcServer.SendToTablet("Button:Disable:Start");
-        pcServer.SendToTablet("Button:Disable:EndEarly");
-        pcServer.SendToTablet("Button:Disable:Abort");
+        ButtonControl("Start", false);
+        ButtonControl("EndEarly", false);
+        ButtonControl("Abort", false);
         if (runAuton)
         {
             yield return StartCoroutine(FullReset());
@@ -179,15 +184,14 @@ public class TMBridgeFieldsetController : MonoBehaviour
         autoUpdateState = true;
         displayMatchState = "Ready to Start";
         pcServer.SendToTablet($"MatchState:{displayMatchState}");
-        pcServer.SendToTablet("Button:Enable:Start");
-        pcServer.SendToTablet("Button:Enable:Abort");
+        ButtonControl("Start", true);
+        ButtonControl("Abort", true);
         UnityEngine.Debug.Log("[TM] Match setup complete. Ready to start.");
     }
 
     void Start()
     {
         StartTMBridge();
-        UnityEngine.Debug.LogWarning("Bridge Is Disabled!");
         if (matchState != "paused") ResetTimer();
         StartCoroutine(PollMatchTime());
     }
@@ -196,7 +200,7 @@ public class TMBridgeFieldsetController : MonoBehaviour
     {
         if (matchState == "AUTONOMOUS") displayMatchState = "AUTONOMOUS";
         else if (matchState == "DRIVER CONTROL") displayMatchState = "DRIVER CONTROL";
-        pcServer.SendToTablet($"MatchState:{displayMatchState}");
+        UpdateStateAndTime();
     }
 
     private IEnumerator PollMatchTime()
@@ -214,17 +218,19 @@ public class TMBridgeFieldsetController : MonoBehaviour
             yield return request.SendWebRequest();
             if (request.result == UnityWebRequest.Result.Success)
             {
-                RunOnMainThread(() => {
+                RunOnMainThread(() =>
+                {
                     string json = request.downloadHandler.text;
                     FieldsetStatus status = JsonUtility.FromJson<FieldsetStatus>(json);
                     if (sendPollToLog) UnityEngine.Debug.Log($"[TM] Time: {status.match_timer_content} | State: {status.match_state}");
-                    pcServer.SendToTablet($"MatchTime:{status.match_timer_content}");
                     matchState = status.match_state;
                     matchTime = status.match_time;
+                    matchTimeNice = status.match_timer_content;
                     if (autoUpdateState)
                     {
                         UpdateMatchState();
                     }
+                    else UpdateStateAndTime();
                     if (status.match_time == 0 && matchState == "DRIVER CONTROL")
                     {
                         pcServer.SendToTablet("MatchEnded");
@@ -233,12 +239,12 @@ public class TMBridgeFieldsetController : MonoBehaviour
                     if (status.match_time == 15 && displayMatchState == "AUTONOMOUS") autonStarted = true;
                     if (status.match_time == 0 && displayMatchState == "AUTONOMOUS" && autonStarted)
                     {
-                        pcServer.SendToTablet("Button:Enable:Start");
-                        pcServer.SendToTablet("Button:Disable:EndEarly");
+                        ButtonControl("Start", true);
+                        ButtonControl("EndEarly", false);
                         UnityEngine.Debug.Log("[TM] Auton ended.");
                     }
                 });
-                
+
             }
             else
             {
@@ -273,6 +279,42 @@ public class TMBridgeFieldsetController : MonoBehaviour
         autoUpdateState = false;
         displayMatchState = "Match Ended";
         pcServer.SendToTablet($"MatchState:{displayMatchState}");
+    }
+
+    public void ButtonControl(string buttonName, bool interactable)
+    {
+        if (buttonName == "Start")
+        {
+            StartButton.interactable = interactable;
+            if (interactable)
+                pcServer.SendToTablet("Button:Enable:Start");
+            else
+                pcServer.SendToTablet("Button:Disable:Start");
+        }
+        else if (buttonName == "EndEarly")
+        {
+            EndEarlyButton.interactable = interactable;
+            if (interactable)
+                pcServer.SendToTablet("Button:Enable:EndEarly");
+            else
+                pcServer.SendToTablet("Button:Disable:EndEarly");
+        }
+        else if (buttonName == "Abort")
+        {
+            AbortButton.interactable = interactable;
+            if (interactable)
+                pcServer.SendToTablet("Button:Enable:Abort");
+            else
+                pcServer.SendToTablet("Button:Disable:Abort");
+        }
+    }
+
+    public void UpdateStateAndTime()
+    {
+        pcServer.SendToTablet($"MatchState:{displayMatchState}");
+        pcServer.SendToTablet($"MatchTime:{matchTimeNice}");
+        MatchStateText.text = displayMatchState;
+        MatchTimeText.text = matchTimeNice;
     }
 }
 #endif

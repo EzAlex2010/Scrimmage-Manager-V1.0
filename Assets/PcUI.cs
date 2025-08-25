@@ -4,6 +4,7 @@ using UnityEngine;
 using System.IO;
 using TMPro;
 using UnityEngine.UI;
+using System.Linq;
 public class LeaderboardManager : MonoBehaviour
 {
     public static LeaderboardManager Instance;
@@ -95,19 +96,28 @@ public class LeaderboardManager : MonoBehaviour
         return "TeamData:" + json;
     }
 
-    public void AddWinPoints(string teamName, int winPoints)
+    public void AddWinPoints(string teamName, int pointsAwarded, int scoreThisMatch = 0, bool won = false)
     {
-        TeamData existing = teamScores.Find(t => t.teamName == teamName);
-        if (existing != null)
+        var team = teamScores.FirstOrDefault(t => t.teamName == teamName);
+        if (team == null)
         {
-            existing.winpoints += winPoints;
+            team = new TeamData { teamName = teamName };
+            teamScores.Add(team);
         }
-        else
-        {
-            teamScores.Add(new TeamData { teamName = teamName, winpoints = winPoints });
-        }
+        // Always count participation
+        team.matchesPlayed++;
+        // Only increment if the team actually won
+        if (won)
+            team.matchesWon++;
+        // Award WP (0, 1, or 2 depending on win/tie/loss)
+        team.winpoints += pointsAwarded;
+        // Track highest score
+        if (scoreThisMatch > team.highScore)
+            team.highScore = scoreThisMatch;
+
         SaveScores();
         pcServer.SendToTablet(GetTeamDataMessage());
+        UpdateLeaderboardDisplay();
     }
 
     public void SaveScores()

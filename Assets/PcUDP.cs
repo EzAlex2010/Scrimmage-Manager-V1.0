@@ -90,6 +90,46 @@ public class PCServer : MonoBehaviour
             StartCoroutine(tmBridgeController.HandleMatchStart(lm.runAuton));
             Debug.Log($"Match Setup: Red1={lm.Red1}, Red2={lm.Red2}, Blue1={lm.Blue1}, Blue2={lm.Blue2}, Auton={lm.runAuton}, Record={lm.recordScores}");
         }
+        else if (message.StartsWith("MatchResult"))
+        {
+            Debug.Log("PC: Match result received: " + message);
+            string[] parts = message.Split('|');
+            string red1 = "", red2 = "", blue1 = "", blue2 = "";
+            int redScore = 0, blueScore = 0;
+
+            foreach (var part in parts)
+            {
+                if (part.StartsWith("Red1:")) red1 = part.Substring("Red1:".Length);
+                else if (part.StartsWith("Red2:")) red2 = part.Substring("Red2:".Length);
+                else if (part.StartsWith("Blue1:")) blue1 = part.Substring("Blue1:".Length);
+                else if (part.StartsWith("Blue2:")) blue2 = part.Substring("Blue2:".Length);
+                else if (part.StartsWith("RedScore:")) int.TryParse(part.Substring("RedScore:".Length), out redScore);
+                else if (part.StartsWith("BlueScore:")) int.TryParse(part.Substring("BlueScore:".Length), out blueScore);
+            }
+
+            var lm = LeaderboardManager.Instance;
+            if (redScore > blueScore)
+            {
+                lm.AddWinPoints(red1, 2, redScore, true);
+                lm.AddWinPoints(red2, 2, redScore, true);
+                lm.AddWinPoints(blue1, 0, blueScore, false);
+                lm.AddWinPoints(blue2, 0, blueScore, false);
+            }
+            else if (blueScore > redScore)
+            {
+                lm.AddWinPoints(blue1, 2, blueScore, true);
+                lm.AddWinPoints(blue2, 2, blueScore, true);
+                lm.AddWinPoints(red1, 0, redScore, false);
+                lm.AddWinPoints(red2, 0, redScore, false);
+            }
+            else // tie
+            {
+                lm.AddWinPoints(red1, 1, redScore, false);
+                lm.AddWinPoints(red2, 1, redScore, false);
+                lm.AddWinPoints(blue1, 1, blueScore, false);
+                lm.AddWinPoints(blue2, 1, blueScore, false);
+            }
+        }
         else if (message == "EndMatchEarly")
         {
             Debug.Log("PC: End match period requested");
