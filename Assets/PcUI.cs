@@ -21,6 +21,8 @@ public class LeaderboardManager : MonoBehaviour
     public bool runAuton = true; // Flag to control auton mode. True by default
     public GameObject androidconnectiontext;
     public GameObject PcUI;
+    public Transform scrollContent;      // Reference to the ScrollView Content object
+    public GameObject teamDataPrefab;    // Reference to your TeamData_UI prefab
 
     public void test()
     {
@@ -40,11 +42,34 @@ public class LeaderboardManager : MonoBehaviour
         AddWinPoints("6741M", 0);
     }
 
+    public void UpdateLeaderboardDisplay()
+    {
+        Debug.Log("[AndroidUI] Updating leaderboard display...");
+        // Clear previous entries
+        foreach (Transform child in scrollContent)
+        {
+            Destroy(child.gameObject);
+        }
+
+        // Sort teamScores by winpoints descending
+        teamScores.Sort((a, b) => b.winpoints.CompareTo(a.winpoints));
+
+        // Instantiate prefabs for each team
+        foreach (var team in teamScores)
+        {
+            GameObject item = Instantiate(teamDataPrefab, scrollContent);
+            TeamData_UI ui = item.GetComponent<TeamData_UI>();
+            ui.Setup(team);
+        }
+        Debug.Log("[AndroidUI] Leaderboard display updated.");
+    }
+
     void Start()
     {
         androidconnectiontext.SetActive(false);
         PcUI.SetActive(true);
         LoadScores();
+        UpdateLeaderboardDisplay();
     }
 
     void Awake()
