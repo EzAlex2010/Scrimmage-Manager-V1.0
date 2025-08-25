@@ -251,10 +251,7 @@ public class TMBridgeFieldsetController : MonoBehaviour
 
     private IEnumerator SendFieldsetCommand(string command)
     {
-        UnityEngine.Debug.Log($"[SendFieldsetCommand] Entered with command = {command}");
         string url = $"{tmBridgeBaseUrl}/api/fieldset/{fieldsetName}/{command}";
-        UnityEngine.Debug.Log($"[SendFieldsetCommand] URL = {url}");
-
         UnityWebRequest request = new UnityWebRequest(url, "POST");
         request.uploadHandler = new UploadHandlerRaw(new byte[0]);
         request.downloadHandler = new DownloadHandlerBuffer();

@@ -18,8 +18,9 @@ public class LeaderboardManager : MonoBehaviour
     public string Red2;
     public string Blue1;
     public string Blue2;
-
     public bool runAuton = true; // Flag to control auton mode. True by default
+    public GameObject androidconnectiontext;
+    public GameObject PcUI;
 
     public void test()
     {
@@ -39,6 +40,13 @@ public class LeaderboardManager : MonoBehaviour
         AddWinPoints("6741M", 0);
     }
 
+    void Start()
+    {
+        androidconnectiontext.SetActive(false);
+        PcUI.SetActive(true);
+        LoadScores();
+    }
+
     void Awake()
     {
         if (Instance == null)
@@ -52,7 +60,6 @@ public class LeaderboardManager : MonoBehaviour
         }
 
         filePath = Application.persistentDataPath + "/leaderboard.json";
-        LoadScores();
     }
 
     public string GetTeamDataMessage()
@@ -74,7 +81,6 @@ public class LeaderboardManager : MonoBehaviour
         {
             teamScores.Add(new TeamData { teamName = teamName, winpoints = winPoints });
         }
-        teamScores.Sort((a, b) => b.winpoints.CompareTo(a.winpoints));
         SaveScores();
         pcServer.SendToTablet(GetTeamDataMessage());
     }

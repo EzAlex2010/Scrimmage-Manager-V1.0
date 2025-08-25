@@ -50,6 +50,7 @@ public class PCServer : MonoBehaviour
                 tabletEndpoint = ip;
                 SendToTablet("HelloAck");
                 SendToTablet(leaderboardManager.GetTeamDataMessage());
+                SendToTablet("Passcode:" + leaderboardManager.passcode);
             }
             HandleCommand(message);
         });

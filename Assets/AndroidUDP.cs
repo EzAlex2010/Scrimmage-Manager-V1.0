@@ -91,45 +91,50 @@ public class TabletClient : MonoBehaviour
         connectiontext.SetActive(false);
         if (!message.StartsWith("MatchState") && !message.StartsWith("MatchTime")) Debug.Log("Received: " + message);
         if (message.StartsWith("TeamData:"))
+        {
+            string teamInfoJson = message.Substring("TeamData:".Length);
+            Debug.Log("Tablet: Got team info JSON - " + teamInfoJson);
+            TeamDataListWrapper wrapper = JsonUtility.FromJson<TeamDataListWrapper>(teamInfoJson);
+            if (wrapper != null && wrapper.teamScores != null)
             {
-                string teamInfoJson = message.Substring("TeamData:".Length);
-                Debug.Log("Tablet: Got team info JSON - " + teamInfoJson);
-                TeamDataListWrapper wrapper = JsonUtility.FromJson<TeamDataListWrapper>(teamInfoJson);
-                if (wrapper != null && wrapper.teamScores != null)
-                {
-                    // update your UI
-                    androidUI.SaveTeamData(wrapper.teamScores);
-                }
+                // update your UI
+                androidUI.SaveTeamData(wrapper.teamScores);
             }
-            else if (message == "MatchEnded")
+        }
+        else if (message.StartsWith("Passcode:"))
+        {
+            string passcode = message.Substring("Passcode:".Length);
+            androidUI.passcode = passcode;
+        }
+        else if (message == "MatchEnded")
+        {
+            androidUI.EndMatch();
+        }
+        else if (message.StartsWith("MatchState:"))
+        {
+            string state = message.Substring("MatchState:".Length);
+            androidUI.UpdateMatchState(state);
+        }
+        else if (message.StartsWith("MatchTime:"))
+        {
+            string time = message.Substring("MatchTime:".Length);
+            androidUI.UpdateMatchTime(time);
+        }
+        else if (message.StartsWith("Button:"))
+        {
+            string button = message.Substring("Button:".Length);
+            Debug.Log(button);
+            if (button.StartsWith("Disable:"))
             {
-                androidUI.EndMatch();
+                string btnName = button.Substring("Disable:".Length);
+                androidUI.SetButtonInteractable(btnName, false);
             }
-            else if (message.StartsWith("MatchState:"))
+            else if (button.StartsWith("Enable:"))
             {
-                string state = message.Substring("MatchState:".Length);
-                androidUI.UpdateMatchState(state);
+                string btnName = button.Substring("Enable:".Length);
+                androidUI.SetButtonInteractable(btnName, true);
             }
-            else if (message.StartsWith("MatchTime:"))
-            {
-                string time = message.Substring("MatchTime:".Length);
-                androidUI.UpdateMatchTime(time);
-            }
-            else if (message.StartsWith("Button:"))
-            {
-                string button = message.Substring("Button:".Length);
-                Debug.Log(button);
-                if (button.StartsWith("Disable:"))
-                {
-                    string btnName = button.Substring("Disable:".Length);
-                    androidUI.SetButtonInteractable(btnName, false);
-                }
-                else if (button.StartsWith("Enable:"))
-                {
-                    string btnName = button.Substring("Enable:".Length);
-                    androidUI.SetButtonInteractable(btnName, true);
-                }
-            }
+        }
     }
 
     void OnApplicationQuit()
