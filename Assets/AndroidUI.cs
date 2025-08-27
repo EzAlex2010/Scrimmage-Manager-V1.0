@@ -300,6 +300,21 @@ public class AndroidUI : MonoBehaviour
         //Open Scoring Panel
         ControlPanel.SetActive(false);
         ScoringPanel.SetActive(true);
+        SubmitScoresButton.interactable = false;
+    }
+
+    public void CheckSubmit()
+    {
+        if (int.TryParse(RedScoreInput.text, out int redScore) &&
+            int.TryParse(BlueScoreInput.text, out int blueScore) &&
+            redScore >= 0 && blueScore >= 0)
+        {
+            SubmitScoresButton.interactable = true;
+        }
+        else
+        {
+            SubmitScoresButton.interactable = false;
+        }
     }
 
     public void StartMatch()
@@ -319,6 +334,7 @@ public class AndroidUI : MonoBehaviour
 
     public void SubmitScores()
     {
+        Debug.Log("Submitting scores...");
         // Hide UI
         ControlPanel.SetActive(false);
         ScoringPanel.SetActive(false);
@@ -331,6 +347,7 @@ public class AndroidUI : MonoBehaviour
             Destroy(child.gameObject);
 
         if (!recordScores) return;
+        Debug.Log("Testing scores...");
 
         // Parse input safely
         if (!int.TryParse(RedScoreInput.text, out int redScore) ||

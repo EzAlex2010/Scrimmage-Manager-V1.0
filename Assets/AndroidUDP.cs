@@ -89,52 +89,54 @@ public class TabletClient : MonoBehaviour
     private void HandleUpdate(string message)
     {
         connectiontext.SetActive(false);
-        if (!message.StartsWith("MatchState") && !message.StartsWith("MatchTime")) Debug.Log("Received: " + message);
+        if (!message.StartsWith("MatchState") && !message.StartsWith("MatchTime") && !message.StartsWith("Passcode")) Debug.Log("Received: " + message);
+        else if (message.StartsWith("Passcode")) Debug.Log("Received passcode but is hidden for security");
+        
         if (message.StartsWith("TeamData:"))
-        {
-            string teamInfoJson = message.Substring("TeamData:".Length);
-            Debug.Log("Tablet: Got team info JSON - " + teamInfoJson);
-            TeamDataListWrapper wrapper = JsonUtility.FromJson<TeamDataListWrapper>(teamInfoJson);
-            if (wrapper != null && wrapper.teamScores != null)
             {
-                // update your UI
-                androidUI.SaveTeamData(wrapper.teamScores);
+                string teamInfoJson = message.Substring("TeamData:".Length);
+                Debug.Log("Tablet: Got team info JSON - " + teamInfoJson);
+                TeamDataListWrapper wrapper = JsonUtility.FromJson<TeamDataListWrapper>(teamInfoJson);
+                if (wrapper != null && wrapper.teamScores != null)
+                {
+                    // update your UI
+                    androidUI.SaveTeamData(wrapper.teamScores);
+                }
             }
-        }
-        else if (message.StartsWith("Passcode:"))
-        {
-            string passcode = message.Substring("Passcode:".Length);
-            androidUI.passcode = passcode;
-        }
-        else if (message == "MatchEnded")
-        {
-            androidUI.EndMatch();
-        }
-        else if (message.StartsWith("MatchState:"))
-        {
-            string state = message.Substring("MatchState:".Length);
-            androidUI.UpdateMatchState(state);
-        }
-        else if (message.StartsWith("MatchTime:"))
-        {
-            string time = message.Substring("MatchTime:".Length);
-            androidUI.UpdateMatchTime(time);
-        }
-        else if (message.StartsWith("Button:"))
-        {
-            string button = message.Substring("Button:".Length);
-            Debug.Log(button);
-            if (button.StartsWith("Disable:"))
+            else if (message.StartsWith("Passcode:"))
             {
-                string btnName = button.Substring("Disable:".Length);
-                androidUI.SetButtonInteractable(btnName, false);
+                string passcode = message.Substring("Passcode:".Length);
+                androidUI.passcode = passcode;
             }
-            else if (button.StartsWith("Enable:"))
+            else if (message == "MatchEnded")
             {
-                string btnName = button.Substring("Enable:".Length);
-                androidUI.SetButtonInteractable(btnName, true);
+                androidUI.EndMatch();
             }
-        }
+            else if (message.StartsWith("MatchState:"))
+            {
+                string state = message.Substring("MatchState:".Length);
+                androidUI.UpdateMatchState(state);
+            }
+            else if (message.StartsWith("MatchTime:"))
+            {
+                string time = message.Substring("MatchTime:".Length);
+                androidUI.UpdateMatchTime(time);
+            }
+            else if (message.StartsWith("Button:"))
+            {
+                string button = message.Substring("Button:".Length);
+                Debug.Log(button);
+                if (button.StartsWith("Disable:"))
+                {
+                    string btnName = button.Substring("Disable:".Length);
+                    androidUI.SetButtonInteractable(btnName, false);
+                }
+                else if (button.StartsWith("Enable:"))
+                {
+                    string btnName = button.Substring("Enable:".Length);
+                    androidUI.SetButtonInteractable(btnName, true);
+                }
+            }
     }
 
     void OnApplicationQuit()
