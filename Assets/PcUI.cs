@@ -10,7 +10,7 @@ public class LeaderboardManager : MonoBehaviour
     public static LeaderboardManager Instance;
     public List<TeamData> teamScores = new List<TeamData>();
     private string filePath;
-    public string passcode = "6741 Robotics";
+    public string passcode;
 
     public TMBridgeFieldsetController tmBridgeController; // Reference to the TM Bridge controller
     public PCServer pcServer; // Reference to your PCServer script
@@ -24,6 +24,8 @@ public class LeaderboardManager : MonoBehaviour
     public GameObject PcUI;
     public Transform scrollContent;      // Reference to the ScrollView Content object
     public GameObject teamDataPrefab;    // Reference to your TeamData_UI prefab
+    public TMP_InputField teamnumberInput;
+    public TMP_Text teammodifytext;
 
     public void test()
     {
@@ -71,6 +73,19 @@ public class LeaderboardManager : MonoBehaviour
         PcUI.SetActive(true);
         LoadScores();
         UpdateLeaderboardDisplay();
+        string passcodeFilePath = Application.persistentDataPath + "/passcode.txt";
+        if (File.Exists(passcodeFilePath))
+        {
+            passcode = File.ReadAllText(passcodeFilePath).Trim();
+            Debug.Log("[Leaderboard] Passcode loaded: " + passcode);
+        }
+        else
+        {
+            Debug.LogWarning("[Leaderboard] Passcode file not found at: " + passcodeFilePath);
+            File.WriteAllText(passcodeFilePath, "");
+            passcode = "";
+            Debug.Log("[Leaderboard] Blank passcode file created at: " + passcodeFilePath);
+        }
     }
 
     void Awake()
@@ -86,6 +101,46 @@ public class LeaderboardManager : MonoBehaviour
         }
 
         filePath = Application.persistentDataPath + "/leaderboard.json";
+    }
+
+    public void Addteam()
+    {
+        string teamName = teamnumberInput.text;
+        if (string.IsNullOrWhiteSpace(teamName))
+        {
+            teammodifytext.text = "Enter a Team Number!";
+            return;
+        }
+        if (teamScores.Any(t => t.teamName == teamName))
+        {
+            teammodifytext.text = "Team Already Exists!";
+            teamnumberInput.text = "";
+            return;
+        }
+        var newTeam = new TeamData { teamName = teamName };
+        teamScores.Add(newTeam);
+        SaveScores();
+        UpdateLeaderboardDisplay();
+        teamnumberInput.text = "";
+        teammodifytext.text = "Team Added!";
+    }
+
+    public void RemoveTeam()
+    {
+        var teamToRemove = teamScores.FirstOrDefault(t => t.teamName == teamnumberInput.text);
+        if (teamToRemove != null)
+        {
+            teamScores.Remove(teamToRemove);
+            SaveScores();
+            UpdateLeaderboardDisplay();
+            teammodifytext.text = "Team Removed!";
+        }
+        else
+        {
+            Debug.Log("Team not found: " + teamnumberInput.text);
+            teammodifytext.text = "Team Not Found!";
+        }
+        teamnumberInput.text = "";
     }
 
     public string GetTeamDataMessage()
@@ -116,7 +171,6 @@ public class LeaderboardManager : MonoBehaviour
             team.highScore = scoreThisMatch;
 
         SaveScores();
-        pcServer.SendToTablet(GetTeamDataMessage());
         UpdateLeaderboardDisplay();
     }
 
@@ -124,6 +178,7 @@ public class LeaderboardManager : MonoBehaviour
     {
         string json = JsonUtility.ToJson(new TeamDataListWrapper { teamScores = teamScores }, true);
         File.WriteAllText(filePath, json);
+        pcServer.SendToTablet(GetTeamDataMessage());
     }
 
     public void LoadScores()

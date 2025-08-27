@@ -201,7 +201,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1564200}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 354701404}
+        m_TargetAssemblyTypeName: LeaderboardManager, Assembly-CSharp
+        m_MethodName: RemoveTeam
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1564200
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1823,7 +1835,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 267735623}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 354701404}
+        m_TargetAssemblyTypeName: LeaderboardManager, Assembly-CSharp
+        m_MethodName: Addteam
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &267735623
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2119,7 +2143,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   teamScores: []
-  passcode: 6741 Robotics
+  passcode: 
   tmBridgeController: {fileID: 2133471939}
   pcServer: {fileID: 354701406}
   recordScores: 0
@@ -2132,6 +2156,8 @@ MonoBehaviour:
   PcUI: {fileID: 266134419}
   scrollContent: {fileID: 1661508973}
   teamDataPrefab: {fileID: 2238981975434943273, guid: 2bb092c7c09c221458a83ffdd112083b, type: 3}
+  teamnumberInput: {fileID: 1334157724}
+  teammodifytext: {fileID: 1403341902}
 --- !u!4 &354701405
 Transform:
   m_ObjectHideFlags: 0
@@ -5691,7 +5717,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Content: {fileID: 1661508973}
-  m_Horizontal: 0
+  m_Horizontal: 1
   m_Vertical: 1
   m_MovementType: 1
   m_Elasticity: 0.1
@@ -7066,7 +7092,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Content: {fileID: 1845309436}
-  m_Horizontal: 0
+  m_Horizontal: 1
   m_Vertical: 1
   m_MovementType: 1
   m_Elasticity: 0.1

@@ -299,8 +299,19 @@ public class AndroidUI : MonoBehaviour
         tabletClient.SendCommand("EndMatch");
         //Open Scoring Panel
         ControlPanel.SetActive(false);
-        ScoringPanel.SetActive(true);
+        if (recordScores)
+        {
+            ScoringPanel.SetActive(true);
+        }
+        else
+        {
+            RunMatchPanel.SetActive(false);
+            CreateMatchButton.SetActive(true);
+            ViewLeaderboardButton.SetActive(true);
+        }
         SubmitScoresButton.interactable = false;
+        RedScoreInput.text = "";
+        BlueScoreInput.text = "";
     }
 
     public void CheckSubmit()
