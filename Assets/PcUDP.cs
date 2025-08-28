@@ -108,6 +108,17 @@ public class PCServer : MonoBehaviour
             }
 
             var lm = LeaderboardManager.Instance;
+            lm.matchData.Add(new MatchData
+            {
+                Red1 = red1,
+                Red2 = red2,
+                Blue1 = blue1,
+                Blue2 = blue2,
+                RedScore = redScore,
+                BlueScore = blueScore,
+                timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+            });
+            lm.SaveMatches();
             if (redScore > blueScore)
             {
                 lm.AddWinPoints(red1, 2, redScore, true);

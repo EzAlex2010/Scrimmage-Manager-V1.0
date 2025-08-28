@@ -6,4 +6,11 @@ public class TeamData
     public int matchesWon;
     public int matchesPlayed;
     public int highScore;
+
+     // Calculated stats
+    [System.NonSerialized] public float avgAllianceScore;
+    [System.NonSerialized] public float avgOpponentScore;
+    [System.NonSerialized] public float avgScoreDiff;
+    [System.NonSerialized] public float approxContribution;
+    [System.NonSerialized] public float sos;
 }

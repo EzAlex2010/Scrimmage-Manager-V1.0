@@ -2143,6 +2143,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   teamScores: []
+  matchData: []
   passcode: 
   tmBridgeController: {fileID: 2133471939}
   pcServer: {fileID: 354701406}
@@ -10945,7 +10946,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_HorizontalFit: 0
+  m_HorizontalFit: 2
   m_VerticalFit: 2
 --- !u!114 &1661508975
 MonoBehaviour:
@@ -11120,6 +11121,7 @@ GameObject:
   - component: {fileID: 1711628099}
   - component: {fileID: 1711628101}
   - component: {fileID: 1711628100}
+  - component: {fileID: 1711628102}
   m_Layer: 5
   m_Name: Leaderboard Label
   m_TagString: Untagged
@@ -11246,6 +11248,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1711628098}
   m_CullTransparentMesh: 1
+--- !u!114 &1711628102
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1711628098}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a615d734e8fa2a4ca221904f41ec1cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  scrollRect: {fileID: 808579621}
+  headerContent: {fileID: 1711628099}
 --- !u!1 &1731515871
 GameObject:
   m_ObjectHideFlags: 0
@@ -12423,7 +12439,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_HorizontalFit: 0
+  m_HorizontalFit: 2
   m_VerticalFit: 2
 --- !u!1 &1867818415
 GameObject:

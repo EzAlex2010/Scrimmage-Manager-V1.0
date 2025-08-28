@@ -9,7 +9,9 @@ public class LeaderboardManager : MonoBehaviour
 {
     public static LeaderboardManager Instance;
     public List<TeamData> teamScores = new List<TeamData>();
-    private string filePath;
+    public List<MatchData> matchData = new List<MatchData>();
+    private string teamDatafilePath;
+    private string matchDatafilePath;
     public string passcode;
 
     public TMBridgeFieldsetController tmBridgeController; // Reference to the TM Bridge controller
@@ -27,27 +29,10 @@ public class LeaderboardManager : MonoBehaviour
     public TMP_InputField teamnumberInput;
     public TMP_Text teammodifytext;
 
-    public void test()
-    {
-        ClearScores();
-        AddWinPoints("6741A", 10);
-        AddWinPoints("6741R", 15);
-        AddWinPoints("6741S", 2);
-        AddWinPoints("6741D", 7);
-        AddWinPoints("6741V", 0);
-        AddWinPoints("6741F", 0);
-        AddWinPoints("6741G", 0);
-        AddWinPoints("6741X", 0);
-        AddWinPoints("6741T", 0);
-        AddWinPoints("6741W", 0);
-        AddWinPoints("6741Z", 0);
-        AddWinPoints("6741N", 0);
-        AddWinPoints("6741M", 0);
-    }
-
     public void UpdateLeaderboardDisplay()
     {
-        Debug.Log("[AndroidUI] Updating leaderboard display...");
+        Debug.Log("[PcUI] Updating leaderboard display...");
+        CalculateStats();
         // Clear previous entries
         foreach (Transform child in scrollContent)
         {
@@ -64,7 +49,7 @@ public class LeaderboardManager : MonoBehaviour
             TeamData_UI ui = item.GetComponent<TeamData_UI>();
             ui.Setup(team);
         }
-        Debug.Log("[AndroidUI] Leaderboard display updated.");
+        Debug.Log("[PcUI] Leaderboard display updated.");
     }
 
     void Start()
@@ -72,6 +57,7 @@ public class LeaderboardManager : MonoBehaviour
         androidconnectiontext.SetActive(false);
         PcUI.SetActive(true);
         LoadScores();
+        LoadMatches();
         UpdateLeaderboardDisplay();
         string passcodeFilePath = Application.persistentDataPath + "/passcode.txt";
         if (File.Exists(passcodeFilePath))
@@ -100,7 +86,8 @@ public class LeaderboardManager : MonoBehaviour
             Destroy(gameObject);
         }
 
-        filePath = Application.persistentDataPath + "/leaderboard.json";
+        teamDatafilePath = Application.persistentDataPath + "/leaderboard.json";
+        matchDatafilePath = Application.persistentDataPath + "/matchdata.json";
     }
 
     public void Addteam()
@@ -174,20 +161,113 @@ public class LeaderboardManager : MonoBehaviour
         UpdateLeaderboardDisplay();
     }
 
+    public void CalculateStats()
+    {
+        foreach (var team in teamScores)
+        {
+            int totalAllianceScore = 0;
+            int totalOpponentScore = 0;
+            int gamesPlayed = 0;
+
+            // Loop through all matches and check if the team participated
+            foreach (var match in matchData)
+            {
+                bool onRed = (match.Red1 == team.teamName || match.Red2 == team.teamName);
+                bool onBlue = (match.Blue1 == team.teamName || match.Blue2 == team.teamName);
+
+                if (onRed || onBlue)
+                {
+                    gamesPlayed++;
+
+                    if (onRed)
+                    {
+                        totalAllianceScore += match.RedScore;
+                        totalOpponentScore += match.BlueScore;
+                    }
+                    else if (onBlue)
+                    {
+                        totalAllianceScore += match.BlueScore;
+                        totalOpponentScore += match.RedScore;
+                    }
+                }
+            }
+
+            if (gamesPlayed > 0)
+            {
+                team.avgAllianceScore = (float)totalAllianceScore / gamesPlayed;
+                team.avgOpponentScore = (float)totalOpponentScore / gamesPlayed;
+                team.avgScoreDiff = team.avgAllianceScore - team.avgOpponentScore;
+                team.approxContribution = team.avgAllianceScore / 2f; // since 2 teams per alliance
+            }
+            else
+            {
+                team.avgAllianceScore = 0;
+                team.avgOpponentScore = 0;
+                team.avgScoreDiff = 0;
+                team.approxContribution = 0;
+            }
+
+            // 🔹 Strength of Schedule (average win rate of opponents)
+            int opponentMatches = 0;
+            float opponentWins = 0;
+
+            foreach (var match in matchData)
+            {
+                bool onRed = (match.Red1 == team.teamName || match.Red2 == team.teamName);
+                bool onBlue = (match.Blue1 == team.teamName || match.Blue2 == team.teamName);
+
+                if (onRed || onBlue)
+                {
+                    List<string> opponents = onRed
+                        ? new List<string> { match.Blue1, match.Blue2 }
+                        : new List<string> { match.Red1, match.Red2 };
+
+                    foreach (string opp in opponents)
+                    {
+                        var oppTeam = teamScores.FirstOrDefault(t => t.teamName == opp);
+                        if (oppTeam != null && oppTeam.matchesPlayed > 0)
+                        {
+                            opponentWins += (float)oppTeam.matchesWon / oppTeam.matchesPlayed;
+                            opponentMatches++;
+                        }
+                    }
+                }
+            }
+
+            team.sos = (opponentMatches > 0) ? opponentWins / opponentMatches : 0;
+        }
+    }
+
     public void SaveScores()
     {
         string json = JsonUtility.ToJson(new TeamDataListWrapper { teamScores = teamScores }, true);
-        File.WriteAllText(filePath, json);
+        File.WriteAllText(teamDatafilePath, json);
         pcServer.SendToTablet(GetTeamDataMessage());
     }
 
     public void LoadScores()
     {
-        if (File.Exists(filePath))
+        if (File.Exists(teamDatafilePath))
         {
-            string json = File.ReadAllText(filePath);
+            string json = File.ReadAllText(teamDatafilePath);
             TeamDataListWrapper wrapper = JsonUtility.FromJson<TeamDataListWrapper>(json);
             teamScores = wrapper.teamScores ?? new List<TeamData>();
+        }
+    }
+
+    public void SaveMatches()
+    {
+        string json = JsonUtility.ToJson(new MatchDataListWrapper { matchData = matchData }, true);
+        File.WriteAllText(matchDatafilePath, json);
+    }
+
+    public void LoadMatches()
+    {
+        if (File.Exists(matchDatafilePath))
+        {
+            string json = File.ReadAllText(matchDatafilePath);
+            MatchDataListWrapper wrapper = JsonUtility.FromJson<MatchDataListWrapper>(json);
+            matchData = wrapper.matchData ?? new List<MatchData>();
         }
     }
 
@@ -196,9 +276,9 @@ public class LeaderboardManager : MonoBehaviour
         // Clear the in-memory list
         teamScores.Clear();
         // Delete the file if it exists
-        if (File.Exists(filePath))
+        if (File.Exists(teamDatafilePath))
         {
-            File.Delete(filePath);
+            File.Delete(teamDatafilePath);
             Debug.Log("[Leaderboard] JSON file deleted.");
         }
         else
