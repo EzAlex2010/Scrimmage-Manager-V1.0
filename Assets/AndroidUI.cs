@@ -3,7 +3,6 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using System.Collections.Generic;
-using System.Security.Cryptography;
 public class AndroidUI : MonoBehaviour
 {
     public TabletClient tabletClient; // Reference to your TabletClient script
@@ -15,6 +14,8 @@ public class AndroidUI : MonoBehaviour
     public string Red2;
     public string Blue1;
     public string Blue2;
+    public bool blueWinPoint = false; // Flag to control blue win point. False by default
+    public bool redWinPoint = false; // Flag to control red win point. False by default
     public bool runAuton = true; // Flag to control auton mode. True by default
     public string passcode;
 
@@ -34,6 +35,7 @@ public class AndroidUI : MonoBehaviour
     public GameObject teamRowPrefab; // New prefab for rows with Red/Blue buttons
     public Button nextButton; // Button to go to next step in match creation
     public TMP_InputField recordscorespass;
+    public Toggle recordscorescheck;
 
     [Header("Run Match Panel")]
     public GameObject RunMatchPanel; // Panel to run the match
@@ -55,6 +57,8 @@ public class AndroidUI : MonoBehaviour
     public Button SubmitScoresButton;
     public TMP_InputField BlueScoreInput;
     public TMP_InputField RedScoreInput;
+    public Toggle BlueWinPointToggle;
+    public Toggle RedWinPointToggle;
 
     [Header("Leaderboard Panel")]
     public GameObject LeaderboardPanel; // Panel to view the leaderboard
@@ -92,7 +96,7 @@ public class AndroidUI : MonoBehaviour
         foreach (var team in teamScores)
         {
             GameObject item = Instantiate(teamDataPrefab, scrollContent);
-            TeamData_UI ui = item.GetComponent<TeamData_UI>();
+            TeamData_UI_Tablet ui = item.GetComponent<TeamData_UI_Tablet>();
             ui.Setup(team);
         }
         Debug.Log("[AndroidUI] Leaderboard display updated.");
@@ -131,6 +135,16 @@ public class AndroidUI : MonoBehaviour
     public void SetRunAuton(bool value)
     {
         runAuton = value;
+    }
+
+    public void SetGiveBlueWinPoint(bool value)
+    {
+        blueWinPoint = value;
+    }
+
+    public void SetGiveRedWinPoint(bool value)
+    {
+        redWinPoint = value;
     }
 
     public void PopulateTeamButtons()
@@ -190,6 +204,7 @@ public class AndroidUI : MonoBehaviour
             rowUI.Setup(team, (t, alliance) => AssignToAlliance(t.teamName, alliance, rowUI));
             numOfTeamsSelected++;
         }
+        recordscorescheck.isOn = false;
         MatchSettingsPanel.SetActive(true);
     }
 
@@ -280,7 +295,7 @@ public class AndroidUI : MonoBehaviour
         {
             recordScores = false;
             Debug.Log("Passcode incorrect. recordScores = false");
-            if (recordscorespass.text != "") return;
+            if (!recordscorescheck.isOn) return; // If check box is not checked, return
         }
         Debug.Log($"Creating match with Red1: {Red1}, Red2: {Red2}, Blue1: {Blue1}, Blue2: {Blue2}");
         MatchSettingsPanel.SetActive(false);
@@ -312,6 +327,8 @@ public class AndroidUI : MonoBehaviour
         SubmitScoresButton.interactable = false;
         RedScoreInput.text = "";
         BlueScoreInput.text = "";
+        RedWinPointToggle.isOn = false;
+        BlueWinPointToggle.isOn = false;
     }
 
     public void CheckSubmit()
@@ -369,7 +386,7 @@ public class AndroidUI : MonoBehaviour
             return;
         }
 
-        string result = $"MatchResult|Red1:{Red1}|Red2:{Red2}|Blue1:{Blue1}|Blue2:{Blue2}|RedScore:{redScore}|BlueScore:{blueScore}";
+        string result = $"MatchResult|Red1:{Red1}|Red2:{Red2}|Blue1:{Blue1}|Blue2:{Blue2}|RedScore:{redScore}|BlueScore:{blueScore}|RedWinPoint:{(RedWinPointToggle.isOn ? 1 : 0)}|BlueWinPoint:{(BlueWinPointToggle.isOn ? 1 : 0)}";
         tabletClient.SendCommand(result);
     }
 

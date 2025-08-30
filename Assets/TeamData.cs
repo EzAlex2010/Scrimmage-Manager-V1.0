@@ -6,6 +6,7 @@ public class TeamData
     public int matchesWon;
     public int matchesPlayed;
     public int highScore;
+    public int autonWinPoints;
 
      // Calculated stats
     [System.NonSerialized] public float avgAllianceScore;

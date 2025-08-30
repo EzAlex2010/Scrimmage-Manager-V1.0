@@ -96,6 +96,7 @@ public class PCServer : MonoBehaviour
             string[] parts = message.Split('|');
             string red1 = "", red2 = "", blue1 = "", blue2 = "";
             int redScore = 0, blueScore = 0;
+            bool redWinPoint = false, blueWinPoint = false;
 
             foreach (var part in parts)
             {
@@ -105,6 +106,8 @@ public class PCServer : MonoBehaviour
                 else if (part.StartsWith("Blue2:")) blue2 = part.Substring("Blue2:".Length);
                 else if (part.StartsWith("RedScore:")) int.TryParse(part.Substring("RedScore:".Length), out redScore);
                 else if (part.StartsWith("BlueScore:")) int.TryParse(part.Substring("BlueScore:".Length), out blueScore);
+                else if (part.StartsWith("RedWinPoint:")) redWinPoint = part.Substring("RedWinPoint:".Length) == "1";
+                else if (part.StartsWith("BlueWinPoint:")) blueWinPoint = part.Substring("BlueWinPoint:".Length) == "1";
             }
 
             var lm = LeaderboardManager.Instance;
@@ -121,24 +124,24 @@ public class PCServer : MonoBehaviour
             lm.SaveMatches();
             if (redScore > blueScore)
             {
-                lm.AddWinPoints(red1, 2, redScore, true);
-                lm.AddWinPoints(red2, 2, redScore, true);
-                lm.AddWinPoints(blue1, 0, blueScore, false);
-                lm.AddWinPoints(blue2, 0, blueScore, false);
+                lm.AddWinPoints(red1, 2 + (redWinPoint ? 1 : 0), redScore, true);
+                lm.AddWinPoints(red2, 2 + (redWinPoint ? 1 : 0), redScore, true);
+                lm.AddWinPoints(blue1, 0 + (blueWinPoint ? 1 : 0), blueScore, false);
+                lm.AddWinPoints(blue2, 0 + (blueWinPoint ? 1 : 0), blueScore, false);
             }
             else if (blueScore > redScore)
             {
-                lm.AddWinPoints(blue1, 2, blueScore, true);
-                lm.AddWinPoints(blue2, 2, blueScore, true);
-                lm.AddWinPoints(red1, 0, redScore, false);
-                lm.AddWinPoints(red2, 0, redScore, false);
+                lm.AddWinPoints(blue1, 2 + (blueWinPoint ? 1 : 0), blueScore, true);
+                lm.AddWinPoints(blue2, 2 + (blueWinPoint ? 1 : 0), blueScore, true);
+                lm.AddWinPoints(red1, 0 + (redWinPoint ? 1 : 0), redScore, false);
+                lm.AddWinPoints(red2, 0 + (redWinPoint ? 1 : 0), redScore, false);
             }
             else // tie
             {
-                lm.AddWinPoints(red1, 1, redScore, false);
-                lm.AddWinPoints(red2, 1, redScore, false);
-                lm.AddWinPoints(blue1, 1, blueScore, false);
-                lm.AddWinPoints(blue2, 1, blueScore, false);
+                lm.AddWinPoints(red1, 1 + (redWinPoint ? 1 : 0), redScore, false);
+                lm.AddWinPoints(red2, 1 + (redWinPoint ? 1 : 0), redScore, false);
+                lm.AddWinPoints(blue1, 1 + (blueWinPoint ? 1 : 0), blueScore, false);
+                lm.AddWinPoints(blue2, 1 + (blueWinPoint ? 1 : 0), blueScore, false);
             }
         }
         else if (message == "EndMatchEarly")

@@ -138,7 +138,7 @@ public class LeaderboardManager : MonoBehaviour
         return "TeamData:" + json;
     }
 
-    public void AddWinPoints(string teamName, int pointsAwarded, int scoreThisMatch = 0, bool won = false)
+    public void AddWinPoints(string teamName, int pointsAwarded, int scoreThisMatch = 0, bool won = false, bool autonWP = false)
     {
         var team = teamScores.FirstOrDefault(t => t.teamName == teamName);
         if (team == null)
@@ -156,7 +156,10 @@ public class LeaderboardManager : MonoBehaviour
         // Track highest score
         if (scoreThisMatch > team.highScore)
             team.highScore = scoreThisMatch;
-
+        // Track auton win points
+        if (autonWP)
+            team.autonWinPoints++;
+        // Save and refresh display
         SaveScores();
         UpdateLeaderboardDisplay();
     }
@@ -172,8 +175,8 @@ public class LeaderboardManager : MonoBehaviour
             // Loop through all matches and check if the team participated
             foreach (var match in matchData)
             {
-                bool onRed = (match.Red1 == team.teamName || match.Red2 == team.teamName);
-                bool onBlue = (match.Blue1 == team.teamName || match.Blue2 == team.teamName);
+                bool onRed = match.Red1 == team.teamName || match.Red2 == team.teamName;
+                bool onBlue = match.Blue1 == team.teamName || match.Blue2 == team.teamName;
 
                 if (onRed || onBlue)
                 {
@@ -213,8 +216,8 @@ public class LeaderboardManager : MonoBehaviour
 
             foreach (var match in matchData)
             {
-                bool onRed = (match.Red1 == team.teamName || match.Red2 == team.teamName);
-                bool onBlue = (match.Blue1 == team.teamName || match.Blue2 == team.teamName);
+                bool onRed = match.Red1 == team.teamName || match.Red2 == team.teamName;
+                bool onBlue = match.Blue1 == team.teamName || match.Blue2 == team.teamName;
 
                 if (onRed || onBlue)
                 {
