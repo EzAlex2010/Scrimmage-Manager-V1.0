@@ -64,6 +64,7 @@ public class AndroidUI : MonoBehaviour
     public GameObject LeaderboardPanel; // Panel to view the leaderboard
     public Transform scrollContent;      // Reference to the ScrollView Content object
     public GameObject teamDataPrefab;    // Reference to your TeamData_UI prefab
+    public GameObject dataHeader;        // Reference to your header prefab
 
     void Start()
     {
@@ -93,6 +94,7 @@ public class AndroidUI : MonoBehaviour
         teamScores.Sort((a, b) => b.winpoints.CompareTo(a.winpoints));
 
         // Instantiate prefabs for each team
+        Instantiate(dataHeader, scrollContent);
         foreach (var team in teamScores)
         {
             GameObject item = Instantiate(teamDataPrefab, scrollContent);

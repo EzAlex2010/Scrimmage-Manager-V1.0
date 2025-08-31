@@ -12254,6 +12254,7 @@ MonoBehaviour:
   LeaderboardPanel: {fileID: 1540396565}
   scrollContent: {fileID: 1845309436}
   teamDataPrefab: {fileID: 2238981975434943273, guid: 3cb035c9165a1a745b9484ee79febf76, type: 3}
+  dataHeader: {fileID: 2238981975434943273, guid: 8c9bb792799f16e43ac8b992e85c5898, type: 3}
 --- !u!114 &1731515873
 MonoBehaviour:
   m_ObjectHideFlags: 0
