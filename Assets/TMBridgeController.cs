@@ -48,19 +48,65 @@ public class TMBridgeFieldsetController : MonoBehaviour
     }
 
 
+    private void LoadConfig()
+    {
+        string configPath = Path.Combine(Application.dataPath, "tmbridge_config.txt");
+        if (!File.Exists(configPath))
+        {
+            UnityEngine.Debug.LogWarning($"[TM] Config file not found at {configPath}, using defaults.");
+            return;
+        }
+
+        foreach (string line in File.ReadAllLines(configPath))
+        {
+            if (string.IsNullOrWhiteSpace(line) || line.StartsWith("#"))
+                continue; // skip comments/blank lines
+
+            string[] parts = line.Split(new char[] { '=' }, 2);
+            if (parts.Length != 2) continue;
+
+            string key = parts[0].Trim();
+            string value = parts[1].Trim();
+
+            switch (key)
+            {
+                case "tmBridgeBaseUrl":
+                    tmBridgeBaseUrl = value;
+                    break;
+                case "fieldsetName":
+                    fieldsetName = value;
+                    break;
+                case "tmBridgeExe":
+                    tmBridgeExePath = value;
+                    break;
+                case "tmBridgeArgs":
+                    tmBridgeArgs = value;
+                    break;
+                case "pollIntervalSeconds":
+                    if (float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out float poll))
+                        pollIntervalSeconds = poll;
+                    break;
+                case "postMatchDelaySeconds":
+                    if (float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out float delay))
+                        postMatchDelaySeconds = delay;
+                    break;
+            }
+        }
+    }
+
     void StartTMBridge()
     {
         if (Process.GetProcessesByName("vex-tm-bridge").Length == 0)
         {
             ProcessStartInfo startInfo = new ProcessStartInfo
             {
-                FileName = Application.dataPath + "/Dependencies/vex-tm-bridge.exe",
-                Arguments = "--tm-host-ip localhost --competition V5RC --port 8000",
-                UseShellExecute = true,   // required for admin
-                Verb = "runas",           // triggers UAC
+                FileName = Path.Combine(Application.dataPath, tmBridgeExePath),
+                Arguments = tmBridgeArgs,
+                UseShellExecute = true,
+                Verb = "runas",
                 WindowStyle = ProcessWindowStyle.Minimized
             };
-
+    
             tmBridgeProcess = Process.Start(startInfo);
         }
     }
