@@ -1,6 +1,5 @@
 using UnityEngine;
 using System.Diagnostics;
-using System.IO;
 
 public class FileOpener : MonoBehaviour
 {
@@ -15,7 +14,7 @@ public class FileOpener : MonoBehaviour
         #elif UNITY_STANDALONE_LINUX
             Process.Start("xdg-open", folderPath);
         #else
-            Debug.LogWarning("Opening folders is not supported on this platform: " + Application.platform);
+            UnityEngine.Debug.LogWarning("Opening folders is not supported on this platform: " + Application.platform);
         #endif
     }
 }

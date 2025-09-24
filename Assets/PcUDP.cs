@@ -9,12 +9,12 @@ using System.Collections.Concurrent;
 
 public class PCServer : MonoBehaviour
 {
-    public TMBridgeFieldsetController tmBridgeController; // Reference to the TM Bridge controller
-    public LeaderboardManager leaderboardManager; // Reference to the leaderboard manager
+    public TMBridgeFieldsetController tmBridgeController;
+    public LeaderboardManager leaderboardManager;
+    public int port = 9051; // <-- configurable port
     private UdpClient udp;
-    private IPEndPoint tabletEndpoint; // we'll store tablet's address when it first connects
+    private IPEndPoint tabletEndpoint;
     private static readonly ConcurrentQueue<Action> actions = new ConcurrentQueue<Action>();
-
     public static void RunOnMainThread(Action action)
     {
         actions.Enqueue(action);
@@ -23,30 +23,40 @@ public class PCServer : MonoBehaviour
     void Update()
     {
         while (actions.TryDequeue(out var action))
-        {
             action?.Invoke();
-        }
     }
 
     void Start()
     {
-        udp = new UdpClient(9050); // Listen on port 9050
-        udp.BeginReceive(ReceiveCallback, null);
-        Debug.Log("PC Server started on port 9050");
+        try
+        {
+            if (udp != null)
+            {
+                udp.Close();
+                udp = null;
+            }
+            udp = new UdpClient();
+            udp.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            udp.Client.Bind(new IPEndPoint(IPAddress.Any, port));
+            udp.BeginReceive(ReceiveCallback, null);
+            Debug.Log($"PC Server started on port {port}");
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError("Failed to start PC Server: " + ex);
+        }
     }
 
     private void ReceiveCallback(IAsyncResult ar)
     {
-        IPEndPoint ip = new IPEndPoint(IPAddress.Any, 9050);
+        IPEndPoint ip = new IPEndPoint(IPAddress.Any, port);
         byte[] data = udp.EndReceive(ar, ref ip);
         string message = Encoding.UTF8.GetString(data);
 
-        // Handle the command on the main thread
         RunOnMainThread(() => {
             Debug.Log("PC Received: " + message);
             if (message == "HelloFromTablet")
             {
-                // ip contains tablet's IP and source port
                 tabletEndpoint = ip;
                 SendToTablet("HelloAck");
                 SendToTablet(leaderboardManager.GetTeamDataMessage());
@@ -55,7 +65,6 @@ public class PCServer : MonoBehaviour
             HandleCommand(message);
         });
 
-        // Keep listening
         udp.BeginReceive(ReceiveCallback, null);
     }
 

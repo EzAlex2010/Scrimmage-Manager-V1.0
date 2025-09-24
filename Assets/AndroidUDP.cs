@@ -14,7 +14,7 @@ public class TabletClient : MonoBehaviour
     private bool registered = false;
     public AndroidUI androidUI; // Reference to your UI script
     public GameObject connectiontext;
-    private int pcPort = 9050;     // PC listening port
+    private int pcPort = 9051;     // PC listening port
 
     private static readonly ConcurrentQueue<Action> actions = new ConcurrentQueue<Action>();
 
