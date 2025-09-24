@@ -7,12 +7,17 @@ using System.Collections.Concurrent;
 using System;
 using UnityEngine.UI;
 using TMPro;
+using System.IO;
+using System.Globalization;
+using System.Runtime.InteropServices;
 
 public class TMBridgeFieldsetController : MonoBehaviour
 {
     // Customize this to your TM Bridge setup
     public string tmBridgeBaseUrl = "http://localhost:8000";
     public string fieldsetName = "field1"; // Name from TM Bridge
+    private string tmBridgeExePath = "Dependencies/vex-tm-bridge.exe";
+    private string tmBridgeArgs = "--tm-host-ip localhost --competition V5RC --port 8000";
     public float pollIntervalSeconds = 0.5f;
     public float postMatchDelaySeconds = 3f;
     public string matchState = "";
@@ -31,6 +36,9 @@ public class TMBridgeFieldsetController : MonoBehaviour
     public bool autonStarted;
     public PCServer pcServer;
     public string matchTimeNice;
+    private string configFilePath;
+    public DependencyChecker dependencyChecker;
+
 
     private static readonly ConcurrentQueue<Action> actions = new ConcurrentQueue<Action>();
 
@@ -47,67 +55,99 @@ public class TMBridgeFieldsetController : MonoBehaviour
         }
     }
 
+    public static class Win32Popup
+    {
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        private static extern int MessageBox(IntPtr hWnd, string text, string caption, uint type);
+
+        /// <summary>
+        /// Shows a Windows message box.
+        /// type: 0 = OK, 1 = OK/Cancel, 2 = Abort/Retry/Ignore, 3 = Yes/No/Cancel, 4 = Yes/No, etc.
+        /// </summary>
+        public static void Show(string message, string title = "Notice", uint type = 0)
+        {
+            MessageBox(IntPtr.Zero, message, title, type);
+        }
+    }
 
     private void LoadConfig()
     {
-        string configPath = Path.Combine(Application.dataPath, "tmbridge_config.txt");
-        if (!File.Exists(configPath))
+        configFilePath = Path.Combine(Application.persistentDataPath, "tmbridge_config.txt");
+
+        if (!File.Exists(configFilePath))
         {
-            UnityEngine.Debug.LogWarning($"[TM] Config file not found at {configPath}, using defaults.");
-            return;
+            string defaultConfig =
+    @"fieldsetName=field1
+port=8001";
+            File.WriteAllText(configFilePath, defaultConfig);
         }
 
-        foreach (string line in File.ReadAllLines(configPath))
-        {
-            if (string.IsNullOrWhiteSpace(line) || line.StartsWith("#"))
-                continue; // skip comments/blank lines
+        string fieldName = "field1";
+        int port = 8000;
 
+        foreach (string line in File.ReadAllLines(configFilePath))
+        {
+            if (string.IsNullOrWhiteSpace(line) || line.StartsWith("#")) continue;
             string[] parts = line.Split(new char[] { '=' }, 2);
             if (parts.Length != 2) continue;
-
             string key = parts[0].Trim();
             string value = parts[1].Trim();
-
             switch (key)
             {
-                case "tmBridgeBaseUrl":
-                    tmBridgeBaseUrl = value;
-                    break;
                 case "fieldsetName":
-                    fieldsetName = value;
+                    fieldName = value;
                     break;
-                case "tmBridgeExe":
-                    tmBridgeExePath = value;
-                    break;
-                case "tmBridgeArgs":
-                    tmBridgeArgs = value;
-                    break;
-                case "pollIntervalSeconds":
-                    if (float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out float poll))
-                        pollIntervalSeconds = poll;
-                    break;
-                case "postMatchDelaySeconds":
-                    if (float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out float delay))
-                        postMatchDelaySeconds = delay;
+                case "port":
+                    if (int.TryParse(value, out int p))
+                        port = p;
                     break;
             }
         }
+
+        fieldsetName = fieldName;
+        tmBridgeBaseUrl = $"http://localhost:{port}";
+        tmBridgeArgs = $"--tm-host-ip localhost --competition V5RC --port {port}";
     }
 
     void StartTMBridge()
     {
-        if (Process.GetProcessesByName("vex-tm-bridge").Length == 0)
+        string pythonPath = DependencyChecker.GetPythonPath();
+        if (pythonPath == null)
         {
-            ProcessStartInfo startInfo = new ProcessStartInfo
-            {
-                FileName = Path.Combine(Application.dataPath, tmBridgeExePath),
-                Arguments = tmBridgeArgs,
-                UseShellExecute = true,
-                Verb = "runas",
-                WindowStyle = ProcessWindowStyle.Minimized
-            };
-    
-            tmBridgeProcess = Process.Start(startInfo);
+            Win32Popup.Show("Python 3.10+ was not found.\n\n" +
+                            "Please install it from:\nhttps://www.python.org/downloads/",
+                            "Missing Python");
+            return;
+        }
+        if (!DependencyChecker.CheckTmBridgeInstalled(pythonPath))
+        {
+            Win32Popup.Show("vex-tm-bridge is not installed.\n\n" +
+                            "Run:\n   pip install vex-tm-bridge",
+                            "Missing TM-Bridge");
+            return;
+        }
+
+        // Use config port
+        string argsWithPort = tmBridgeArgs;
+
+        // Wrap in cmd.exe /K to keep window open
+        ProcessStartInfo psi = new ProcessStartInfo
+        {
+            FileName = "cmd.exe",
+            Arguments = $"/K \"{pythonPath}\" -m vex_tm_bridge {argsWithPort}",
+            UseShellExecute = true,   // required for 'runas'
+            Verb = "runas",           // elevate to admin
+            CreateNoWindow = false,
+            WorkingDirectory = Application.dataPath
+        };
+
+        try
+        {
+            tmBridgeProcess = Process.Start(psi);
+        }
+        catch (Exception e)
+        {
+            Win32Popup.Show("Failed to start TM-Bridge:\n" + e.Message, "Error");
         }
     }
 
@@ -237,6 +277,7 @@ public class TMBridgeFieldsetController : MonoBehaviour
 
     void Start()
     {
+        LoadConfig();
         StartTMBridge();
         if (matchState != "paused") ResetTimer();
         StartCoroutine(PollMatchTime());
